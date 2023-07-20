@@ -1,0 +1,37 @@
+
+                    Nano_Neo ver 0.0.5
+_____________________________________________________________
+    _     _                             _     _
+    /|   /                              /|   /
+---/-| -/------__-----__-----__--------/-| -/------__-----__-
+  /  | /     /   )  /   )  /   )      /  | /     /___)  /   )
+_/___|/_____(___(__/___/__(___/______/___|/_____(___ __(___/_
+                     
+    
+-----------Inputs File Stats---------------
+[1mFile[0m: C:\Users\evan\OneDrive\Documents\!REU\XPS data\C1s_sampleE_0s_x++.txt
+[1mFile[0m: C:\Users\evan\xps_neo\Nano-Neo-Public\result\C1s_sampleE_0s_x++_5_out.txt
+[1mPopulation[0m: 2000
+[1mNum Gen[0m: 3
+[1mMutation Opt[0m: 0
+-------------------------------------------
+---------------------------------------------------------
+2023-07-12 14:06:43
+[1mGen: [0m1
+Different from last best fit: 0.0
+[1mBest fit: [94m14205809.633979652[0m
+Best fit combination:
+['voigt' '284.75999999999794' '0.16' '1.54' '2905.0']
+[1mHistory Best: [94m14205809.633979652[0m
+NanCounter: 0
+History Best Indi:
+['voigt' '284.75999999999794' '0.16' '1.54' '2905.0']
+Number of Breeders: 400
+DiffCounter: 0
+Diff %: 0.0
+Mutation Chance: 20
+Mutate Times: 375
+Time: 8.44896s
+---------------------------------------------------------
+2023-07-12 14:06:52
+[1mGen: [0m2

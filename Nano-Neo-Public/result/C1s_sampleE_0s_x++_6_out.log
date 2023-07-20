@@ -1,0 +1,71 @@
+
+                    Nano_Neo ver 0.0.5
+_____________________________________________________________
+    _     _                             _     _
+    /|   /                              /|   /
+---/-| -/------__-----__-----__--------/-| -/------__-----__-
+  /  | /     /   )  /   )  /   )      /  | /     /___)  /   )
+_/___|/_____(___(__/___/__(___/______/___|/_____(___ __(___/_
+                     
+    
+-----------Inputs File Stats---------------
+[1mFile[0m: C:\Users\evan\OneDrive\Documents\!REU\XPS data\C1s_sampleE_0s_x++.txt
+[1mFile[0m: C:\Users\evan\xps_neo\Nano-Neo-Public\result\C1s_sampleE_0s_x++_6_out.txt
+[1mPopulation[0m: 2000
+[1mNum Gen[0m: 3
+[1mMutation Opt[0m: 0
+-------------------------------------------
+---------------------------------------------------------
+2023-07-12 14:07:35
+[1mGen: [0m1
+Different from last best fit: 0.0
+[1mBest fit: [94m15062653.800691167[0m
+Best fit combination:
+['284.719999999998' '0.02' '1.224' '3086.0' 'voigt']
+[1mHistory Best: [94m15062653.800691167[0m
+NanCounter: 0
+History Best Indi:
+['284.719999999998' '0.02' '1.224' '3086.0' 'voigt']
+Number of Breeders: 400
+DiffCounter: 0
+Diff %: 0.0
+Mutation Chance: 20
+Mutate Times: 412
+Time: 8.12468s
+---------------------------------------------------------
+2023-07-12 14:07:43
+[1mGen: [0m2
+Different from last best fit: 646248.8748400696
+[1mBest fit: [94m14416404.925851097[0m
+Best fit combination:
+['284.719999999998' '0.27' '1.178' '3114.0' 'voigt']
+[1mHistory Best: [94m14416404.925851097[0m
+NanCounter: 0
+History Best Indi:
+['284.719999999998' '0.27' '1.178' '3114.0' 'voigt']
+Number of Breeders: 400
+DiffCounter: 0
+Diff %: 0.0
+Mutation Chance: 20
+Mutate Times: 419
+Time: 9.06937s
+---------------------------------------------------------
+2023-07-12 14:07:52
+[1mGen: [0m3
+Different from last best fit: 292992.3781050574
+[1mBest fit: [94m14123412.54774604[0m
+Best fit combination:
+['284.679999999998' '0.17' '1.335' '3110.0' 'voigt']
+[1mHistory Best: [94m14123412.54774604[0m
+NanCounter: 0
+History Best Indi:
+['284.679999999998' '0.17' '1.335' '3110.0' 'voigt']
+Number of Breeders: 400
+DiffCounter: 0
+Diff %: 0.0
+Mutation Chance: 20
+Mutate Times: 412
+Time: 8.89659s
+-----------Output Stats---------------
+[1mTotal Time(s)[0m: 26.0906
+-------------------------------------------
