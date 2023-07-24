@@ -3,7 +3,7 @@ from __future__ import print_function, unicode_literals
 import sys
 import codecs
 from setuptools import setup, find_packages
-from nano_indent import __version__, __author__, __email__
+from xes_neo import __version__, __author__, __email__
 
 
 with open('requirements.txt') as f:
@@ -26,14 +26,14 @@ setup(
     keywords=['GA', 'Nano_Indent','analysis'],
     description='Nano Indent using GA',
     long_description=long_description(),
-    url='https://github.com/laumiulun/Nano-Neo-Public.git',
-    download_url='https://github.com/laumiulun/Nano-Neo-Public/tarball/master',
+    url='https://github.com/tstack43215/xes_neo.git',
+    download_url='https://github.com/tstack43215/xes_neo.git/tarball/master',
     include_package_data=True,
     zip_safe=False,
     install_requires=requirements,
     entry_points={
         'console_scripts': [
-            'nano_neo = nano_indent.nano_indent:main',
+            'xes_neo = xes_neo.xes_neo:main',
         ]
     },
     license='GPLv3',

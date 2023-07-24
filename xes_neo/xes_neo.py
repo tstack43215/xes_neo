@@ -18,7 +18,7 @@ Author: Andy Lau
 """
 
 
-class NANO_GA:
+class XES_GA:
 
     def initialize_params(self,verbose = False):
         """
@@ -44,7 +44,7 @@ class NANO_GA:
 
         self.pathDictionary = {}
         self.data_file = data_file
-        #self.data_cutoff = data_cutoff
+
         # Paths
         self.npaths = npaths
         #self.fits = fits
@@ -157,7 +157,7 @@ class NANO_GA:
     ''' Dont' think it's neccesary, we'll see
     def create_range(self,value,percentage,dt,prec): #-------Where is this called?--------
         """
-        Create delta to calculate the ranges 
+        Create delta to calculate the ranges
         """
         minus = round(value - percentage*value,prec)
         plus = round(value + percentage*value,prec)
@@ -178,7 +178,7 @@ class NANO_GA:
 
         for i in range(self.npops):
             self.Populations.append(self.generateIndividual())
-    
+
         self.eval_Population()
         self.globBestFit = self.sorted_population[0]
 
@@ -231,7 +231,7 @@ class NANO_GA:
         self.currBestFit = self.sorted_population[0]
 
         return score
-    
+
 
     def next_generation(self):
         """
@@ -301,7 +301,7 @@ class NANO_GA:
                     self.mut_chance -= 0.5
                     self.mut_chance = abs(self.mut_chance)
 
-        
+
         for i in range(self.npops):
             if random.random()*100 < self.mut_chance:
                 self.nmutate += 1
@@ -332,7 +332,7 @@ class NANO_GA:
             mut_indi = copy.deepcopy(self.Populations[indi])
             mut_indi.mutate_(self.mut_chance)
             mut_score = self.fitness(mut_indi)
-        
+
             with np.errstate(divide='raise', invalid='raise'):
                 try:
                     t_bot = (np.log(1-(self.genNum/self.ngen)+self.tol))
@@ -352,7 +352,7 @@ class NANO_GA:
                 newIndi = mut_indi
             else:
                 newIndi = og_indi
-        
+
         if self.mut_opt == 3:
             def delta_fun(t,delta_val):
                 rnd = np.random.random()
@@ -396,7 +396,7 @@ class NANO_GA:
         """
         """
         OLD
-        
+
         child = self.generateIndividual()
 
         for i in range(self.npaths):
@@ -440,7 +440,7 @@ class NANO_GA:
             if np.random.randint(0,2) == True:
                 temp_path.append(individual1_path[1][j])
             else:
-                temp_path.append(individual2_path[1][j])         
+                temp_path.append(individual2_path[1][j])
         '''
         #print("Temp Path: " + str(temp_path))
         temp_peak = []
@@ -468,7 +468,7 @@ class NANO_GA:
                 #print()
                 temp_peak = []
             divider = j + 1
-        
+
         #print("Child : " + str(child.get_params()))
         '''
         child.setPeak(i,temp_path[0],temp_path[1],temp_path[2],temp_path[3])
@@ -606,7 +606,7 @@ class NANO_GA:
         self.run()
 
 def main():
-    NANO_GA()
+    XES_GA()
 
 if __name__ == "__main__":
     main()
