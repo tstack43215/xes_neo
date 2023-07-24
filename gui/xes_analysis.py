@@ -38,7 +38,7 @@ def natural_keys(text):
     return [ atoi(c) for c in re.split(r'(\d+)', text) ]
 
 #currently only modified for 1 file at a time? It may work for multiple but I really do not know
-class xps_Analysis:
+class xes_Analysis:
     def __init__(self,dirs,npaths,params):
         self.dirs = dirs
         fileName = params['fileName']

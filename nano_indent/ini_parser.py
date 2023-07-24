@@ -1,4 +1,4 @@
-from xps_fit import background
+from xes_fit import background
 from input_arg import *
 from helper import *
 # ------------------------------------
@@ -110,8 +110,8 @@ mutated_options = int(Mutations_dict['mutated_options'])
 npaths = int(Paths_dict['npeaks'])
 background_type = optional_range_string(Paths_dict,'background_type')
 peak_type = optional_range_string(Paths_dict,'peak_type')
-BE_range = optional_range(Paths_dict,'be_range')
-BE_guess = optional_range(Paths_dict,'be')
+peak_energy_range = optional_range(Paths_dict,'peak_energy_range')
+peak_energy_guess = optional_range(Paths_dict,'peak_energy')
 sigma_range = optional_range(Paths_dict,'sigma_range')
 fwhm_range = optional_range(Paths_dict,'fwhm_range')
 amp_range = optional_range(Paths_dict,'amp_range',)
@@ -123,8 +123,8 @@ for i in range(len(peak_type)):
 
 print("Background type is " + ', '.join(background_type))
 print("Peak Type is " + ', '.join(peak_type))
-print("Binding Energy Range is " + str(BE_range))
-print("Trying BE " + str(BE_guess))
+print("Peak Energy Range is " + str(peak_energy_range))
+print("Trying Peak Energy " + str(peak_energy_guess))
 print("Sigma Range is " + str(sigma_range))
 print("Fwhm Range is " + str(fwhm_range))
 print("Amplitude Range is " + str(amp_range))

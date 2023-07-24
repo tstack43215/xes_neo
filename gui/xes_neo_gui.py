@@ -4,7 +4,11 @@ Email       mburrill@hawk.iit.edu, andylau@u.boisestate.edu
 Version     0.2
 Date        Jul 28, 2022
 """
-
+'''
+Edited by: Alaina Thompson, Evan Restuccia, Tim Stack 
+Email: 
+Date: July 24, 2023
+'''
 """
 TODO
 - analysis [Done]
@@ -36,9 +40,9 @@ import signal
 import pathlib
 import multiprocessing as mp
 # custom Libraries
-from xps_plot import Data_plot, Analysis_plot
+from xes_plot import Data_plot, Analysis_plot
 #import preprocess_data
-import xps_data as data
+import xes_data as data
 
 
 class App():
@@ -48,7 +52,7 @@ class App():
 
     def __init__(self):
         self.__version__ = 0.1
-        self.root = Tk(className='XPS Neo GUI')
+        self.root = Tk(className='XES Neo GUI')
         self.root.wm_title("XES GUI (Pre-pre-pre-Beta)")
         self.root.geometry("875x650") #Changed size so that select folder button on Analysis tab is fully visible 
         self.mainframe = ttk.Notebook(self.root, padding='5')
@@ -78,7 +82,8 @@ class App():
         """
         Initalize all possible variables in the GUI
         """
-
+        # Inputs Tab (column 0)______________________________________________________________________
+        # Averaging Section of Input Tab:
         self.all_files_display = StringVar(self.root, 'Please choose file/s')  #Files that you want to average
         self.all_files = np.array([])
         self.averaged_file = StringVar(self.root, 'Please choose file/s') #File to save the averaged data to
@@ -90,8 +95,7 @@ class App():
         self.yPoints_avg = np.array([]) #Averaged y points for plotting
         self.plot_data = np.array([],[])
 
-
-        # Inputs (column 0)
+        # Input Section of Input Tab:
         # There is a string var to give the prompt on selection, then a path saved to allow easier and safer manipulation
         self.csv_file = StringVar(self.root, "Please choose a data file")
         self.csv_generate_from = pathlib.Path()
@@ -121,84 +125,45 @@ class App():
         self.file_menu = ttk.Combobox()
         self.data_obj = 0
         
-        # Calibration tab variables (column 1)
-        
-        #self.C0 = DoubleVar(self.root, 0.0)
-        #self.C1 = DoubleVar(self.root, 0.0)
-        #self.C2 = DoubleVar(self.root, 0.0)
-        #self.C3 = DoubleVar(self.root, 0.0)
-        #self.C4 = DoubleVar(self.root, 0.0)
-        #self.C5 = DoubleVar(self.root, 0.0)
-        #self.C6 = DoubleVar(self.root, 0.0)
-        #self.C7 = DoubleVar(self.root, 0.0)
-        #self.C8 = DoubleVar(self.root, 0.0)
-
-        #self.E_i = DoubleVar(self.root, 1140)
-        #self.nu_i = DoubleVar(self.root, 0.07)
-        #self.nu = DoubleVar(self.root, 0.30)
-        
-        
-        # Populations (column 2)
+        # Populations Tab (column 2)________________________________________________________________________
         self.population = IntVar(self.root, 2000)
         self.num_gen = IntVar(self.root, 10)
         self.best_sample = IntVar(self.root, 20)
         self.lucky_few = IntVar(self.root, 10)
 
-        # Mutations (column 3)
+        # Mutations Tab (column 3)________________________________________________________________________
         self.chance_of_mutation = IntVar(self.root, 20)
         self.original_chance_of_mutation = IntVar(self.root, 20)
         self.mutated_options = IntVar(self.root, 0)
 
-        # Fitting parameters(column 4)
-        '''
-        self.a_min = DoubleVar(self.root, 0.001)
-        self.a_max = DoubleVar(self.root, 1000)
-        self.a_delta = DoubleVar(self.root,1e-7)
-        self.h_f_min = DoubleVar(self.root, 400)
-        self.h_f_max = DoubleVar(self.root, 1300)
-        self.h_f_delta = DoubleVar(self.root,1)
-        self.m_min = DoubleVar(self.root, 1)
-        self.m_max = DoubleVar(self.root, 2)
-        self.m_delta = DoubleVar(self.root,0.01)
-        self.percent_min = DoubleVar(self.root, 0.10)
-        self.percent_max = DoubleVar(self.root, 0.90)
-        self.path_fit = StringVar(self.root, "Select a fit type")
-        
-        self.data_load_unit = StringVar(self.root, "\u03BCN")
-        self.data_depth_unit = StringVar(self.root, "nm")
-        self.output_units = StringVar(self.root, "GPa")
-        '''
-        #New XPS parameters
-        #how to make unique for each peak?
-        self.number_of_peaks = DoubleVar(self.root, 1)
-        self.BE_guesses = []
+        # Fitting parameters(column 4)________________________________________________________________________
+        #New XES parameters
+        self.number_of_peaks = DoubleVar(self.root, 1) #Selection for how many peaks you want the algorithm to fit
+        self.peak_Energy_guesses = [] #Array to hold Peak Energy guesses
         for i in range(10):
-            self.BE_guesses.append(DoubleVar(self.root, 284.50))
+            self.peak_Energy_guesses.append(DoubleVar(self.root, 6489.0))
         self.so_split = DoubleVar(self.root, 0.00)
-        self.peaks = []
+        self.peaks = [] #Array to hold what type of peaks selected for each peak
         for i in range(10):
             self.peaks.append(StringVar(self.root, "Select a peak type"))
         self.background_types = []
         #self.path_bkgn = StringVar(self.root, "Select a background type") #Dont think we need anymore because we want to use an array now
-        self.path_branching = StringVar(self.root, "Select branching ratio")
+        #self.path_branching = StringVar(self.root, "Select branching ratio")
 
-
-        self.BE_min,self.BE_max,self.BE_delta = -1.5,1.5,.01
+        #Ranges for different variables
+        self.peak_energy_min,self.peak_energy_max,self.peak_energy_delta = -1.5,1.5,.01
         self.sigma_min,self.sigma_max,self.sigma_delta = 0,4,.001
         self.fwhm_min,self.fwhm_max,self.fwhm_delta = 0,2.5,.001
         self.amp_min,self.amp_max,self.amp_delta = 0,5000, 0.05
         self.background_min,self.background_max,self.background_delta = 0,20,0.001
-        self.slope_min,self.slope_max,self.slope_delta = 0,0.01, 0.00001
-
-       #need to make background a checkButton not a picker
-       #need to make a checkButton for Doublet vs. Singlet --> diable so_split and path_branching
+        self.slope_min,self.slope_max,self.slope_delta = 0,0.01, 0.00001 #Allows for a slope to be applied to the background, currently hard set to 0
         
-        # Graph (column 5)
+        # Plot Tab (column 5)________________________________________________________________________
         self.print_graph = BooleanVar(self.root, False)
         self.num_output_paths = BooleanVar(self.root, True)
         self.steady_state_exit = BooleanVar(self.root, True)
 
-        # Output tab (column 6)
+        # Output Tab (column 6)________________________________________________________________________
         self.print_graph = BooleanVar(self.root, False)
         self.num_output_paths = BooleanVar(self.root, True)
         self.steady_state_exit = BooleanVar(self.root, True)
@@ -214,7 +179,8 @@ class App():
         self.checkbutton_whole_folder = ttk.Checkbutton()
 
         self.analysis_dir = StringVar(self.root, "Please choose a data file")
-        # Analysis (column 7)
+
+        # Analysis Tab (column 7)________________________________________________________________________
         # I don't know what goes here so leave blank instead
 
     def initialize_tabs(self):
@@ -227,10 +193,9 @@ class App():
         # Creating tabs
         self.input_tab = ttk.Frame(self.mainframe, height=height)
         self.population_tab = ttk.Frame(self.mainframe, height=height)
-        #self.calibration_tab = ttk.Frame(self.mainframe, height=height)
         self.mutation_tab = ttk.Frame(self.mainframe, height=height)
         self.fitting_param_tab = ttk.Frame(self.mainframe, height=height)
-        self.graph_tab = ttk.Frame(self.mainframe, height=height)
+        self.plot_tab = ttk.Frame(self.mainframe, height=height)
         self.output_tab = ttk.Frame(self.mainframe, height=height)
         self.analysis_tab = ttk.Frame(self.mainframe, height=height)
 
@@ -239,7 +204,7 @@ class App():
         self.mainframe.add(self.population_tab, text='Populations')
         self.mainframe.add(self.mutation_tab, text="Mutations")
         self.mainframe.add(self.fitting_param_tab, text="Fitting Parameters")
-        self.mainframe.add(self.graph_tab, text="Plots")
+        self.mainframe.add(self.plot_tab, text="Plots")
         self.mainframe.add(self.output_tab, text="Output")
         self.mainframe.add(self.analysis_tab, text="Analysis")
 
@@ -310,25 +275,22 @@ class App():
         guesses = []
         inputPeaks = []
         for i in range(int(self.number_of_peaks.get())):
-           guesses.append(self.BE_guesses[i].get())
+           guesses.append(self.peak_Energy_guesses[i].get())
            inputPeaks.append(self.peaks[i].get())
         
 
-        paths = ("\n\n[Paths]\nnPeaks={nPeaks} \nbackground_type = {bkgn_type} \npeak_type = {peak_type} \nBE_range = {BE_range} \nBE={BE} \nsigma_range = "
+        paths = ("\n\n[Paths]\nnPeaks={nPeaks} \nbackground_type = {bkgn_type} \npeak_type = {peak_type} \npeak_Energy_range = {peak_energy_range} \npeak_energy={peak_energy} \nsigma_range = "
                  "{sigma_range} \nfwhm_range = {fwhm_range} \namp_range = {amp_range} \nbackground_range = {background_range} \nslope_range = {slope_range}"
                  .format(nPeaks=int(self.number_of_peaks.get()),
-                         bkgn_type = ",".join(str(i) for i in self.background_types), #Do we need to get this? 
-                         #bkgn_type = str(self.path_bkgn.get()),
+                         bkgn_type = ",".join(str(i) for i in self.background_types),
                          peak_type = ",".join(str(i) for i in inputPeaks),
-                         BE_range=", ".join(str(i) for i in [self.BE_min, self.BE_max, self.BE_delta]),
-                         BE = ", ".join(str(i) for i in guesses),
+                         peak_energy_range=", ".join(str(i) for i in [self.peak_energy_min, self.peak_energy_max, self.peak_energy_delta]),
+                         peak_energy = ", ".join(str(i) for i in guesses),
                          sigma_range=", ".join(str(i) for i in [self.sigma_min, self.sigma_max, self.sigma_delta]),
                          fwhm_range=", ".join(str(i) for i in [self.fwhm_min, self.fwhm_max, self.fwhm_delta]),
                          amp_range =",".join(str(i) for i in [self.amp_min,self.amp_max,self.amp_delta]),
                          background_range = ", ".join(str(i) for i in [self.background_min, self.background_max, self.background_delta]),
                          slope_range = ", ".join(str(i) for i in [self.slope_min, self.slope_max, self.slope_delta])
-                         #per_range=", ".join(str(i) for i in [self.percent_min.get(), self.percent_max.get()]),
-                         #nu=self.nu.get()
                          ))
  
         mutations = ("\n\n[Mutations]\nchance_of_mutation = {chance} \noriginal_chance_of_mutation = {original} "
@@ -441,34 +403,6 @@ class App():
         self.file_dropdown()
         os.chdir(pathlib.Path.cwd().joinpath('gui'))
         return folder_name
-
-    #def read_input(self, filename):
-        # parse with configparser
-        # replace the C values in the calibration tab
-        #config = configparser.ConfigParser()
-        #config.read(filename)
-        #self.C0.set(config['Calibrations']['C0'])
-        #self.C1.set(config['Calibrations']['C1'])
-        #self.C2.set(config['Calibrations']['C2'])
-        #self.C3.set(config['Calibrations']['C3'])
-        #self.C4.set(config['Calibrations']['C4'])
-        #self.C5.set(config['Calibrations']['C5'])
-        #self.C6.set(config['Calibrations']['C6'])
-        #self.C7.set(config['Calibrations']['C7'])
-        #self.C8.set(config['Calibrations']['C8'])
-        #self.E_i.set(config['tip_const']['E_i'])
-        #self.nu_i.set(config['tip_const']['nu_i'])
-        # self.nu.set(config['nu']['nu'])
-
-    #def select_calibration_file(self):
-        #os.chdir(pathlib.Path.cwd().parent)  # change the working directory from gui to nano-indent
-        #file_name = filedialog.askopenfilename(initialdir=pathlib.Path.cwd(), title="Choose txt/csv", filetypes=(
-        #    ("txt files", "*.txt"), ("csv files", "*.csv"), ("all files", "*.*")))
-        #self.csv_calibration_file.set(file_name)
-        #if file_name:
-        #    self.read_input(file_name)
-        #os.chdir(pathlib.Path.cwd().joinpath('gui'))
-       # return file_name
 
     def select_output_folder(self):
         """
@@ -616,7 +550,7 @@ class App():
 
         self.root.grid_rowconfigure(0, weight=1)
 
-        # Create a empty frame
+        # Create an empty frame
         self.label_frame = LabelFrame(self.root, text="Terminal", padx=5, pady=5)
         self.label_frame.grid(column=0, row=1, columnspan=5, padx=self.padx, pady=self.pady, sticky=E + W + N + S)
 
@@ -635,21 +569,17 @@ class App():
         self.file_menu['width'] = len(self.filelist[0])
         self.file_menu.bind("<<ComboboxSelected>>", self.file_selected)
 
-#___Input Tab_______________________________________________________________
+#___Input Tab____________________________________________________________________________________________________________
     def build_inputs_tab(self):
-        # Add the tab names
-        arr_input = ["Input Files: ", "Input file", "Input Folder", "Output folder", "Files to Average", "Averaged File"]
-        self.description_tabs(arr_input, self.input_tab, row=[1, 2, 3, 4, 7, 8])
-
-        averaging_title = ["Average Files: "]
-        self.description_tabs(averaging_title, self.input_tab, column=0, row=[6])
+        # Add the tab names for 
+        arr_input = ["Input Files: ", "Input file", "Input Folder", "Output folder", "Average Files: ", "Files to Average", "Averaged File"]
+        self.description_tabs(arr_input, self.input_tab, row=[1, 2, 3, 4, 6, 7, 8])
 
         self.input_tab.grid_columnconfigure(1, weight=1)
 
-        #_______Entries__________________________________________________________
+        #Entries_____________________________________________________________________________
         # Check button to choose file or folder input
-        checkbutton_label = ttk.Label(self.input_tab, text="Check to select a folder instead of a file",
-                                      font=self.labelFont)
+        checkbutton_label = ttk.Label(self.input_tab, text="Check to select a folder instead of a file", font=self.labelFont)
         checkbutton_label.grid(column=1, row=1, sticky=W)
         
         # File/Folder Input and Output Folder Entries
@@ -666,13 +596,15 @@ class App():
         separator = ttk.Separator(self.input_tab, orient='horizontal')
         separator.grid(column=0, row=5, columnspan=4, sticky=W + E, padx=self.padx,pady=self.pady)
 
-        # Section to average files if necessary
+        # Section to average files
         entry_files_to_average = ttk.Combobox(self.input_tab, textvariable=self.all_files_display, font=self.entryFont)
         entry_files_to_average.grid(column=1, row=7, sticky=(W,E),padx=self.padx,pady=self.pady)
 
         entry_averaged_file = ttk.Entry(self.input_tab, textvariable=self.averaged_file, font=self.entryFont)
         entry_averaged_file.grid(column=1, row=8, sticky=(W,E),padx=self.padx,pady=self.pady)
-        #_______________________________________________________________________
+        #______________________________________________________________________________________________________
+
+    # Functions______________________________________________________________________________________________
         def select_folder():
             if self.yes_folder.get() == 1:  # When multiple input is checked 
                 csv_file_button.config(state=DISABLED)
@@ -707,7 +639,7 @@ class App():
                 self.csv_generate_from = pathlib.Path(file_name)
 
                 # create the data objectives
-                self.data_obj = data.xps_data(pathlib.Path(file_name),int(self.skipLn.get()))
+                self.data_obj = data.xes_data(pathlib.Path(file_name),int(self.skipLn.get()))
 
             # disable the dropdown file menu (if user had folder and changed their mind)
             if self.yes_folder.get() == 0:
@@ -784,11 +716,7 @@ class App():
             
             self.plot_data = np.column_stack((self.xPoints_avg,self.yPoints_avg))
             np.savetxt(self.averaged_file.get(), self.plot_data)
-
-            # print(self.xPoints_avg)
-            # print(self.yPoints_avg)
-            # print(self.plot_data)
-
+        #__________________________________________________________________________________________________
             #os.chdir(pathlib.Path.cwd())          
 
         # _____Input/Output File/Folder Buttons______________________________________________
@@ -822,6 +750,7 @@ class App():
         button_average_data = ttk.Button(self.input_tab,text="Average",command=average_selected_data, style='my.TButton')
         button_average_data.grid(column=0, row=10, sticky=W,padx=self.padx,pady=self.pady)
 
+#___Population Tab____________________________________________________________________________________________
     def build_population_tab(self):
         """
         Build population tab
@@ -837,69 +766,45 @@ class App():
         lucky_few_entry = ttk.Entry(self.population_tab, width=7, textvariable=self.lucky_few, font=self.entryFont)
         lucky_few_entry.grid(column=2, row=5, sticky=W)
 
+#___Mutations Tab____________________________________________________________________________________________
     def build_mutations_tab(self):
-        arr_mutations = ["Mutation chance (%)", "Original chance of mutation (%)",
-                         "Mutation options"]
+        arr_mutations = ["Mutation chance (%)", "Original chance of mutation (%)","Mutation options"]
         self.description_tabs(arr_mutations, self.mutation_tab, row=[2, 3, 4])
+
         mut_list = list(range(101))
-        chance_of_mutation_entry = ttk.Combobox(self.mutation_tab, width=7, textvariable=self.chance_of_mutation,
-                                                values=mut_list,
-                                                state="readonly")
+        chance_of_mutation_entry = ttk.Combobox(self.mutation_tab, width=7, textvariable=self.chance_of_mutation,values=mut_list,state="readonly")
         chance_of_mutation_entry.grid(column=4, row=2, sticky=W)
-        original_chance_of_mutation_entry = ttk.Combobox(self.mutation_tab, width=7,
-                                                         textvariable=self.original_chance_of_mutation,
-                                                         values=mut_list, state="readonly")
+
+        original_chance_of_mutation_entry = ttk.Combobox(self.mutation_tab, width=7,textvariable=self.original_chance_of_mutation,values=mut_list, state="readonly")
         original_chance_of_mutation_entry.grid(column=4, row=3, sticky=W)
-        mutated_options_drop_list = ttk.Combobox(self.mutation_tab, width=2, textvariable=self.mutated_options,
-                                                 values=[1, 2, 3],
-                                                 state="readonly")
+
+        mutated_options_drop_list = ttk.Combobox(self.mutation_tab, width=2, textvariable=self.mutated_options,values=[1, 2, 3],state="readonly")
         mutated_options_drop_list.grid(column=4, row=4, sticky=W)
 
+#___Fitting Parameters Tab____________________________________________________________________________________________
     def build_fitting_param_tab(self):
         """
         Build fitting parameters tab
         """
-        
-        arr_xps_peaks = ["Number of Peaks"] 
-        self.description_tabs(arr_xps_peaks, self.fitting_param_tab, row=[2]) #tabs start at row=1. Row=2 is for background and number_of_peaks 
-        
-        
-        #Row 3 is for the singlet/doublet checkbuttons
-        
-
-       
-        #Doublet Selected: #Should make this peak dependent in the future
-
+        arr_xes_peaks = ["Number of Peaks"] 
+        self.description_tabs(arr_xes_peaks, self.fitting_param_tab, row=[2]) #tabs start at row=1. Row=2 is for background and number_of_peaks 
         self.peak_state = 'disabled' #initial state for so_split and path_branching
-
-        def doublet_selected():
-            global peak_state
-            self.peak_state = 'normal' #peak_state is not changing for some reason...
-           
-            doublet_peak() 
-           
-        '''
-        checkbutton_doublet = ttk.Checkbutton(self.fitting_param_tab, text="Doublet", command=doublet_selected)
-        checkbutton_doublet.grid(column=0, row=3, sticky=W)
-        checkbutton_doublet.state(['!alternate']) #initial state of checkbutton is alternate --> need to set it to off otherwise checkbutton is filled with black square
-        '''
 
         #Peak type picker:
         self.peak_types = ['Voigt', 'Gaussian', 'Lorentzian','Double Lorentzian'] #leave it like this so it can be accessed elsewhere -evan
+        #Line between selections and peak parameters:
+        self.separators = ttk.Separator(self.fitting_param_tab,orient = 'horizontal')
+        self.separators.grid(column= 0,row = 5,columnspan=8,sticky=W+E,padx=self.padx, pady=self.pady)
+        #Peak Type Guess Label:
         path_peakType = ttk.Label(self.fitting_param_tab, text="Fit Type", font=self.labelFont)
-        path_peakType.grid_configure(column=2, row=5, sticky=W, padx=self.padx, pady=self.pady)
-
-        BE = ttk.Label(self.fitting_param_tab,text = "Binding Energy",font = self.labelFont)
-        BE.grid(column = 3,row = 5,sticky = W, padx= self.padx,pady= self.pady)
-
-        doublet_button = ttk.Label(self.fitting_param_tab,text = "Doublet",font = self.labelFont)
-        doublet_button.grid(column = 5,row = 5,sticky = W, padx= self.padx,pady= self.pady)
+        path_peakType.grid_configure(column=2, row=6, sticky=W, padx=self.padx, pady=self.pady)
+        #Peak Energy Guess Label:
+        peak_Energy = ttk.Label(self.fitting_param_tab,text = "Peak Energy",font = self.labelFont)
+        peak_Energy.grid(column = 3,row = 6,sticky = W, padx= self.padx,pady= self.pady)
         
-        self.BE_entries = [0] *10
+        self.peak_Energy_entries = [0] *10
         self.checkbutton_doublets = [0] *10
         self.peakTypes_entries = [0] *10
-        self.branching_entries = [0] *10
-        self.separators = [0]*10
         self.peak_labels = []
         self.oldNum = 1
         #Creates a row for each peak
@@ -908,46 +813,27 @@ class App():
             peak_labels = []
             rows = []
             i=0
-            for row in range(6,6+(2*self.num),2):
+            voigt_for_peak_type = 'Voigt' 
+            #values = self.peak_types in self.peakTypes_entries[i] if you want multiple background types
+            for row in range(7,7+(2*self.num),2):
                 peak_labels.append("Peak" + str(i+1))
                 rows.append(row)
                 
-                
-                self.peakTypes_entries[i] = ttk.Combobox(self.fitting_param_tab, textvariable=self.peaks[i], font=self.entryFont,
-                                            values= self.peak_types)
+                self.peakTypes_entries[i] = ttk.Combobox(self.fitting_param_tab, textvariable=self.peaks[i], font=self.entryFont, values= voigt_for_peak_type)
                 self.peakTypes_entries[i].grid(column=2, row=row, sticky=W)
-
-                #Binding Energy:
-                self.BE_entries[i] = ttk.Entry(self.fitting_param_tab, textvariable=self.BE_guesses[i], font=self.entryFont)
-                self.BE_entries[i].grid(column=3, row=row, sticky=(W, E))
-
-
-                self.checkbutton_doublets[i] = ttk.Checkbutton(self.fitting_param_tab, text="Doublet", command=doublet_selected)
-                self.checkbutton_doublets[i].grid(column=4, row=row, sticky=W)
-                self.checkbutton_doublets[i].state(['!alternate']) #initial state of checkbutton is alternate --> need to set it to off otherwise checkbutton is filled with black square
-
-                self.branching_entries[i] = ttk.Combobox(self.fitting_param_tab, textvariable=self.path_branching, font=self.entryFont,
-                                values=['O.5', '0.666', '0.75'], state=self.peak_state) 
-
-                #path_branching.config(state='disabled')
-                self.branching_entries[i].grid(column=5, row=row, sticky=W)
-
-                self.separators[i] = ttk.Separator(self.fitting_param_tab,orient = 'horizontal')
-                self.separators[i].grid(column= 0,row = row+1,columnspan=8,sticky=W+E,padx=self.padx)
-
+                #Peak Energy:
+                self.peak_Energy_entries[i] = ttk.Entry(self.fitting_param_tab, textvariable=self.peak_Energy_guesses[i], font=self.entryFont)
+                self.peak_Energy_entries[i].grid(column=3, row=row, sticky=(W, E))
                 
                 i+=1
             #destroy any that were leftover
-
             for k in range(self.num,self.oldNum):
                 #print(type(self.peakTypes_entries[k]))
                 #print(self.peak_labels)
                     self.peakTypes_entries[k].destroy()
-                    self.BE_entries[k].destroy()
+                    self.peak_Energy_entries[k].destroy()
                     self.checkbutton_doublets[k].destroy()
-                    self.branching_entries[k].destroy()
                     self.separators[k].destroy()
-                    
 
             for label in self.peak_labels:
                 label.destroy()
@@ -955,45 +841,19 @@ class App():
             self.peak_labels = self.description_tabs(peak_labels,self.fitting_param_tab,row = rows)
             self.oldnum = self.num
 
-
         #Nunber of Peaks:
         number_of_peaks_options = [1,2,3,4,5,6,7,8,9,10]
         number_of_peaks_entry = ttk.Combobox(self.fitting_param_tab, textvariable=self.number_of_peaks, font=self.entryFont,values= number_of_peaks_options)
         number_of_peaks_entry.grid(column=2, row=2, sticky=(W, E)) #on same row as background checkbox 
         number_of_peaks_entry.bind('<<ComboboxSelected>>', updatePeakSelectionRows)
 
-
-
         #Backgrounds Checkboxes:
         path_bkgn = ttk.Label(self.fitting_param_tab, text="Background Type:", font=self.labelFont)
         path_bkgn.grid_configure(column=3, row=2, sticky=W, padx=self.padx, pady=self.pady)
-
+        
         global background_types
         self.background_types = [] #make an array of the background types selected
-
-
-        #-----Shirley-Sherwood Background------
-
-        self.shirley_selected = 1
-        def shirley_bkgn():
-            global background_types
-            global shirley_selected
-            if (self.shirley_selected % 2) == 0: #state of button is off. Used when button is clicked on then off again. 
-                self.background_types.remove('Shirley-Sherwood')
-                self.shirley_selected = 1
-            else: #state of button is on
-                self.background_types.append('Shirley-Sherwood')
-                self.shirley_selected = 2
-            return self.shirley_selected 
-            
-
-        checkbutton_doublet = ttk.Checkbutton(self.fitting_param_tab, text="Shirley-Sherwood", command=shirley_bkgn)
-        checkbutton_doublet.grid(column=4, row=2, sticky=W)
-        checkbutton_doublet.state(['!alternate'])
-
-       
-        #-----Integral Slope-----
-        
+        #-----Linear Background-----
         self.linear_selected = 1
         def linear_bkgn():
             global background_types
@@ -1009,74 +869,22 @@ class App():
         checkbutton_doublet = ttk.Checkbutton(self.fitting_param_tab, text="Linear", command=linear_bkgn)
         checkbutton_doublet.grid(column=5, row=2, sticky=W)
         checkbutton_doublet.state(['!alternate'])
-
-
-        #-----Exponential-----
-        self.exponential_selected = 1
-        def exponential():
-            global background_types
-            global exponential_selected
-            if (self.exponential_selected % 2) == 0: #state of button is off. Used when button is clicked on then off again. 
-                self.background_types.remove('Exponential')
-                self.exponential_selected = 1
-            else: #state of button is on
-                self.background_types.append('Exponential')
-                self.exponential_selected = 2
-            return self.exponential_selected 
-
-        checkbutton_doublet = ttk.Checkbutton(self.fitting_param_tab, text="Exponential", command=exponential)
-        checkbutton_doublet.grid(column=4, row=3, sticky=W)
-        checkbutton_doublet.state(['!alternate'])
-
-
-
-
-
-        #Picker for background. No longer using --> changed to checkbuttons to allow for multiple 
-        #path_bkgns_entry = ttk.Combobox(self.fitting_param_tab, textvariable=self.path_bkgn, font=self.entryFont,
-        #                               values=['Shirley-Sherwood', 'Linear']) #need to change to checkButton
-        #path_bkgns_entry.grid(column=4, row=2, sticky=W)
-        '''
-        path_peakType = ttk.Label(self.fitting_param_tab, text="Fit Type", font=self.labelFont)
-        path_peakType.grid_configure(column=2, row=5, sticky=W, padx=self.padx, pady=self.pady)
-        path_peakTypes_entry = ttk.Combobox(self.fitting_param_tab, textvariable=self.path_peakType, font=self.entryFont,
-                                       values= self.peak_types)
-        path_peakTypes_entry.grid(column=2, row=5, sticky=W)
-        '''
-
-
-        
-
-
-        def doublet_peak():
-            #Branching ratio picker:
-            path_branching = ttk.Label(self.fitting_param_tab, text="Fit Type", font=self.labelFont)
-            path_branching.grid_configure(column=2, row=7, sticky=W, padx=self.padx, pady=self.pady)
-            path_branchings_entry = ttk.Combobox(self.fitting_param_tab, textvariable=self.path_branching, font=self.entryFont,
-                                values=['O.5', '0.666', '0.75'], state=self.peak_state) 
-
-            #path_branching.config(state='disabled')
-            path_branchings_entry.grid(column=2, row=7, sticky=W)
-
-            #Spin-Orbit Split:
-            so_split_entry = ttk.Entry(self.fitting_param_tab, textvariable=self.so_split, font=self.entryFont)
-            so_split_entry.grid(column=2, row=6, sticky=(W, E))
-            so_split_entry.config(state=self.peak_state)
             
         #doublet_peak()
         updatePeakSelectionRows(0)
 
+#___Plot Tab____________________________________________________________________________________________
     def build_plot_tab(self):
         """
         Build plot tab
         """
-        self.graph_tab.columnconfigure(0, weight=1)
-        self.graph_tab.rowconfigure(1, weight=1)
+        self.plot_tab.columnconfigure(0, weight=1)
+        self.plot_tab.rowconfigure(1, weight=1)
 
-        def plot_selection():
-            #self.data_obj.pre_processing((self.percent_min.get(), self.percent_max.get()))
-            data_plot.initial_parameters(self.data_obj)
-            data_plot.plot_selected()
+        # def plot_selection():
+        #     #self.data_obj.pre_processing((self.percent_min.get(), self.percent_max.get()))
+        #     data_plot.initial_parameters(self.data_obj)
+        #     data_plot.plot_selected()
 
         def plot_raw():
             #self.data_obj.pre_processing((self.percent_min.get(), self.percent_max.get()))
@@ -1087,19 +895,20 @@ class App():
             y.append(self.data_obj.get_y())
             data_plot.plot(x,y,'Raw Data', 'Raw Data')
 
-        def plot_both():
-            self.data_obj.pre_processing((self.percent_min.get(), self.percent_max.get()))
-            data_plot.initial_parameters(self.data_obj, title=self.csv_generate_from.stem)
-            data_plot.plot_raw_and_selected()
+        # def plot_both():
+        #     self.data_obj.pre_processing((self.percent_min.get(), self.percent_max.get()))
+        #     data_plot.initial_parameters(self.data_obj, title=self.csv_generate_from.stem)
+        #     data_plot.plot_raw_and_selected()
 
-        data_plot = Data_plot(self.graph_tab)
-        self.plot_button = ttk.Button(self.graph_tab, text='Plot Data', command=plot_raw)
+        data_plot = Data_plot(self.plot_tab)
+        self.plot_button = ttk.Button(self.plot_tab, text='Plot Data', command=plot_raw)
         self.plot_button.grid(column=0, row=0, columnspan=1, sticky=W, padx=self.padx, pady=self.pady)
-        self.plot_selected_button = ttk.Button(self.graph_tab, text='Plot Selected Range', command=plot_selection)
-        self.plot_selected_button.grid(column=1, row=0, columnspan=1, sticky=W, padx=self.padx, pady=self.pady)
 
-        self.plot_both_button = ttk.Button(self.graph_tab, text='Plot Raw and Selected', command=plot_both)
-        self.plot_both_button.grid(column=2, row=0, columnspan=1, sticky=W, padx=self.padx, pady=self.pady)
+        # self.plot_selected_button = ttk.Button(self.plot_tab, text='Plot Selected Range', command=plot_selection)
+        # self.plot_selected_button.grid(column=1, row=0, columnspan=1, sticky=W, padx=self.padx, pady=self.pady)
+
+        # self.plot_both_button = ttk.Button(self.plot_tab, text='Plot Raw and Selected', command=plot_both)
+        # self.plot_both_button.grid(column=2, row=0, columnspan=1, sticky=W, padx=self.padx, pady=self.pady)
 
     def generate_randomized_ini(self, multifolder, i):
         pop_range = np.arange(self.pop_min.get(), self.pop_max.get(), 100)
@@ -1365,7 +1174,7 @@ class App():
                                       text="Check to generate/run iterations for each file in the directory",
                                       font=self.labelFont)
         checkbutton_label.grid(column=0, row=11, sticky=W)
-
+#___Analysis Tab____________________________________________________________________________________________
     def build_analysis_tab(self):
         '''
         arr_col_0 = ['h_f', 'm', 'A', 'Elastic modulus (GPa)', 'Reduced Modulus', 'Stiffness (S)', 'Hardness, H (MPa)',
@@ -1386,55 +1195,17 @@ class App():
 
             os.chdir(pathlib.Path.cwd().joinpath('gui'))
         def calculate_and_plot():
-            self.bkgn_types = ['Shirley-Sherwood','linear']
+            self.background_types = ['linear']
             params = {
                 'base': pathlib.Path.cwd().parent,
                 'file': self.csv_generate_from,
                 'fileName' : self.csv_file.get(),
                 'peaks' : self.peak_types,
-                'bkgns' : self.bkgn_types,
+                'bkgns' : self.background_types,
                 'data obj' : self.data_obj
 
             }
-            params = self.analysis_obj.initial_parameters(self.analysis_dir,params,title=self.csv_generate_from.stem)
- #       def calculate_and_plot():
- #           calibration = {
- #               'C0': self.C0.get(),
- #               'C1': self.C1.get(),
- #               'C2': self.C2.get(),
- #               'C3': self.C3.get(),
- #               'C4': self.C4.get(),
- #               'C5': self.C5.get(),
- #               'C6': self.C6.get(),
- #               'C7': self.C7.get(),
- #               'C8': self.C8.get()
- #           }
-
- #           tip_const = {
- #               'E_i': self.E_i.get(),
- #               'nu_i': self.nu_i.get()
- #           }
- #           params = {
- #               'base': pathlib.Path.cwd().parent,
- #               'data_cutoff': (self.percent_min.get(), self.percent_max.get()),
- #               'file': self.csv_generate_from,
- #               'calibrations': calibration,
- #               'tip_const': tip_const,
- #               'nu': self.nu.get()
- #           }
-
- #           params = self.analysis_obj.initial_parameters(self.analysis_dir, params, title=self.csv_generate_from.stem)
-            # A,hf,m
- #           analysis_hf.set(str(np.round(params['bestFit'][0][1], 3)))
- #           analysis_m.set(str(np.round(params['bestFit'][0][2], 3)))
- #           analysis_A.set(str(params['bestFit'][0][0]))
-            # ----------
- #           analysis_elastic.set(str(np.round(params['result']['E'], 3)))
- #           analysis_RedMod.set(str(np.round(params['result']['E_r'],3)))
- #           analysis_Stiff.set(str(np.round(params['result']['Stiffness'], 2)))
- #           analysis_Hardness.set(str(np.round(params['result']['H'], 2)))
- #           analysis_MaxL.set(str(np.round(params['result']['Max Load'], 2)))
- #           analysis_MaxD.set(str(np.round(params['result']['Max Depth'], 2)))
+            params = self.analysis_obj.initial_parameters(self.analysis_dir,params,title='Fit')
 
         """
         TODO:
@@ -1442,57 +1213,57 @@ class App():
         """
         self.analysis_obj = Analysis_plot(self.analysis_tab)
 
-        analysis_hf = StringVar(self.analysis_tab, 0.0)
-        analysis_m = StringVar(self.analysis_tab, 0.0)
-        analysis_A = StringVar(self.analysis_tab, 0.0)
-        analysis_elastic = StringVar(self.analysis_tab, 0.0)
-        analysis_RedMod = StringVar(self.analysis_tab, 0.0)
-        analysis_Stiff = StringVar(self.analysis_tab, 0.0)
-        analysis_Hardness = StringVar(self.analysis_tab, 0.0)
-        analysis_MaxL = StringVar(self.analysis_tab, 0.0)
-        analysis_MaxD = StringVar(self.analysis_tab, 0.0)
+        # analysis_hf = StringVar(self.analysis_tab, 0.0)
+        # analysis_m = StringVar(self.analysis_tab, 0.0)
+        # analysis_A = StringVar(self.analysis_tab, 0.0)
+        # analysis_elastic = StringVar(self.analysis_tab, 0.0)
+        # analysis_RedMod = StringVar(self.analysis_tab, 0.0)
+        # analysis_Stiff = StringVar(self.analysis_tab, 0.0)
+        # analysis_Hardness = StringVar(self.analysis_tab, 0.0)
+        # analysis_MaxL = StringVar(self.analysis_tab, 0.0)
+        # analysis_MaxD = StringVar(self.analysis_tab, 0.0)
 
         # For now put in placeholders
         analysis_button = ttk.Button(self.analysis_tab, text="Select Folder",
                                      command=select_analysis_folder)  # Add command to export data
         analysis_button.grid(column=0, row=0, sticky=(W, E), padx=self.padx, pady=self.pady, columnspan=2)
 
-        entry_hf_best = ttk.Label(self.analysis_tab, textvariable=analysis_hf, font=self.entryFont, borderwidth=2,
-                                  relief="groove", background='#a9a9a9')
-        entry_hf_best.grid(column=1, row=1, sticky=(W, E), padx=self.padx)
+        # entry_hf_best = ttk.Label(self.analysis_tab, textvariable=analysis_hf, font=self.entryFont, borderwidth=2,
+        #                           relief="groove", background='#a9a9a9')
+        # entry_hf_best.grid(column=1, row=1, sticky=(W, E), padx=self.padx)
 
-        entry_m_best = ttk.Label(self.analysis_tab, textvariable=analysis_m, font=self.entryFont, borderwidth=2,
-                                 relief="groove", background='#a9a9a9')
-        entry_m_best.grid(column=1, row=2, sticky=(W, E), padx=self.padx)
+        # entry_m_best = ttk.Label(self.analysis_tab, textvariable=analysis_m, font=self.entryFont, borderwidth=2,
+        #                          relief="groove", background='#a9a9a9')
+        # entry_m_best.grid(column=1, row=2, sticky=(W, E), padx=self.padx)
 
-        entry_a_best = ttk.Label(self.analysis_tab, textvariable=analysis_A, font=self.entryFont, borderwidth=2,
-                                 relief="groove", background='#a9a9a9')
-        entry_a_best.grid(column=1, row=3, sticky=(W, E), padx=self.padx)
+        # entry_a_best = ttk.Label(self.analysis_tab, textvariable=analysis_A, font=self.entryFont, borderwidth=2,
+        #                          relief="groove", background='#a9a9a9')
+        # entry_a_best.grid(column=1, row=3, sticky=(W, E), padx=self.padx)
 
-        entry_modulus = ttk.Label(self.analysis_tab, textvariable=analysis_elastic, font=self.entryFont, borderwidth=2,
-                                  relief="groove", background='#a9a9a9')
-        entry_modulus.grid(column=1, row=4, sticky=(W, E), padx=self.padx)
+        # entry_modulus = ttk.Label(self.analysis_tab, textvariable=analysis_elastic, font=self.entryFont, borderwidth=2,
+        #                           relief="groove", background='#a9a9a9')
+        # entry_modulus.grid(column=1, row=4, sticky=(W, E), padx=self.padx)
 
-        entry_red_modulus = ttk.Label(self.analysis_tab, textvariable=analysis_RedMod, font=self.entryFont,
-                                      borderwidth=2,
-                                      relief="groove", background='#a9a9a9')
-        entry_red_modulus.grid(column=1, row=5, sticky=(W, E), padx=self.padx)
+        # entry_red_modulus = ttk.Label(self.analysis_tab, textvariable=analysis_RedMod, font=self.entryFont,
+        #                               borderwidth=2,
+        #                               relief="groove", background='#a9a9a9')
+        # entry_red_modulus.grid(column=1, row=5, sticky=(W, E), padx=self.padx)
 
-        entry_stiff = ttk.Label(self.analysis_tab, textvariable=analysis_Stiff, font=self.entryFont, borderwidth=2,
-                                relief="groove", background='#a9a9a9')
-        entry_stiff.grid(column=1, row=6, sticky=(W, E), padx=self.padx)
+        # entry_stiff = ttk.Label(self.analysis_tab, textvariable=analysis_Stiff, font=self.entryFont, borderwidth=2,
+        #                         relief="groove", background='#a9a9a9')
+        # entry_stiff.grid(column=1, row=6, sticky=(W, E), padx=self.padx)
 
-        entry_hard = ttk.Label(self.analysis_tab, textvariable=analysis_Hardness, font=self.entryFont, borderwidth=2,
-                               relief="groove", background='#a9a9a9')
-        entry_hard.grid(column=1, row=7, sticky=(W, E), padx=self.padx)
+        # entry_hard = ttk.Label(self.analysis_tab, textvariable=analysis_Hardness, font=self.entryFont, borderwidth=2,
+        #                        relief="groove", background='#a9a9a9')
+        # entry_hard.grid(column=1, row=7, sticky=(W, E), padx=self.padx)
 
-        entry_max_load = ttk.Label(self.analysis_tab, textvariable=analysis_MaxL, font=self.entryFont, borderwidth=2,
-                                   relief="groove", background='#a9a9a9')
-        entry_max_load.grid(column=1, row=8, sticky=(W, E), padx=self.padx)
+        # entry_max_load = ttk.Label(self.analysis_tab, textvariable=analysis_MaxL, font=self.entryFont, borderwidth=2,
+        #                            relief="groove", background='#a9a9a9')
+        # entry_max_load.grid(column=1, row=8, sticky=(W, E), padx=self.padx)
 
-        entry_max_depth = ttk.Label(self.analysis_tab, textvariable=analysis_MaxD, font=self.entryFont, borderwidth=2,
-                                    relief="groove", background='#a9a9a9')
-        entry_max_depth.grid(column=1, row=9, sticky=(W, E), padx=self.padx)
+        # entry_max_depth = ttk.Label(self.analysis_tab, textvariable=analysis_MaxD, font=self.entryFont, borderwidth=2,
+        #                             relief="groove", background='#a9a9a9')
+        # entry_max_depth.grid(column=1, row=9, sticky=(W, E), padx=self.padx)
         button_plot = ttk.Button(self.analysis_tab,
                                  text="Plot Best Fit",
                                  command=calculate_and_plot)  # Add command to plot data using postprocessing
@@ -1500,17 +1271,17 @@ class App():
         button_export = ttk.Button(self.analysis_tab, text="Export Values")  # Add command to export data
         button_export.grid(column=0, row=11, sticky=(W, E), padx=self.padx, pady=self.pady, columnspan=2)
 
-        self.analysis_tab.columnconfigure(3, weight=1)
-        self.analysis_tab.rowconfigure(0, weight=1)
-        self.analysis_tab.rowconfigure(1, weight=1)
-        self.analysis_tab.rowconfigure(2, weight=1)
-        self.analysis_tab.rowconfigure(3, weight=1)
-        self.analysis_tab.rowconfigure(4, weight=1)
-        self.analysis_tab.rowconfigure(5, weight=1)
-        self.analysis_tab.rowconfigure(6, weight=1)
-        self.analysis_tab.rowconfigure(7, weight=1)
-        self.analysis_tab.rowconfigure(8, weight=1)
-        self.analysis_tab.rowconfigure(9, weight=1)
+        # self.analysis_tab.columnconfigure(3, weight=1)
+        # self.analysis_tab.rowconfigure(0, weight=1)
+        # self.analysis_tab.rowconfigure(1, weight=1)
+        # self.analysis_tab.rowconfigure(2, weight=1)
+        # self.analysis_tab.rowconfigure(3, weight=1)
+        # self.analysis_tab.rowconfigure(4, weight=1)
+        # self.analysis_tab.rowconfigure(5, weight=1)
+        # self.analysis_tab.rowconfigure(6, weight=1)
+        # self.analysis_tab.rowconfigure(7, weight=1)
+        # self.analysis_tab.rowconfigure(8, weight=1)
+        # self.analysis_tab.rowconfigure(9, weight=1)
 
     def stop_term(self):
         # print("In stop term")

@@ -26,7 +26,7 @@ class peak():
         try:
             self.gaussRange = np.arange(paramRange['Gaussian'][0],paramRange['Gaussian'][1],paramRange['Gaussian'][2])
             self.lorentzRange = np.arange(paramRange['Lorentzian'][0],paramRange['Lorentzian'][1],paramRange['Lorentzian'][2])
-            self.bindingEnergyRange = np.arange(paramRange['Binding Energy'][0],paramRange['Binding Energy'][1],paramRange['Binding Energy'][2])
+            self.bindingEnergyRange = np.arange(paramRange['Peak Energy'][0],paramRange['Peak Energy'][1],paramRange['Peak Energy'][2])
             self.ampRange = np.arange(paramRange['Amplitude'][0],paramRange['Amplitude'][1],paramRange['Amplitude'][2])
             try:
                 self.s_o_splittingRange = paramRange['Spin-Orbit Splitting']
@@ -52,8 +52,9 @@ class peak():
             self.SVSC = False
         except:
             #Again special escape for creating custom individuals
-            if paramRange == '':
-                pass
+            print("error finding ranges")
+            exit()
+
         self.peakType = peakType
         if(self.peakType.lower() == "voigt"):
             self.func = self.voigtFunc

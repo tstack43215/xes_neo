@@ -4,12 +4,12 @@ import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
 #import NanoIndent_Analysis
-import xps_analysis2
+import xes_analysis2
 
 class Analysis_plot:
     def __init__(self, frame):
         self.frame = frame
-        self.fig = Figure(figsize=(3.5,3.5), dpi=100)
+        self.fig = Figure(figsize=(7,3.3), dpi=100)
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
         # Create initial figure canvas
         self.canvas.get_tk_widget().grid(column=2, row=1, rowspan=13, columnspan=5, sticky="nsew",
@@ -23,7 +23,7 @@ class Analysis_plot:
 
     def initial_parameters(self,dir,params,title):
         dir = str(dir.get())
-        self.nano_analysis = xps_analysis2.xps_analysis(dir,params)
+        self.nano_analysis = xes_analysis2.xes_analysis(dir,params)
         self.nano_analysis.extract_data(plot_err=False)
         self.nano_analysis.score()
 
@@ -31,6 +31,9 @@ class Analysis_plot:
         self.fig.clf()
         self.nano_analysis.plot_data(title=title,fig_gui = self.fig)
         self.canvas.draw()
+        self.title = 'Fit'
+        self.xlabel = 'Energy (eV)'
+        self.ylabel= 'Counts/s'
         return self.nano_analysis.get_params()
         '''
         self.nano_analysis.score()
@@ -61,8 +64,8 @@ class Data_plot:
         """
         self.data_obj = data_obj
         self.title = 0
-        self.xlabel = 'Binding Energy: BE'
-        self.ylabel= 'Intensity: Counts'
+        self.xlabel = 'Energy (eV)'
+        self.ylabel= 'Counts/s'
     #def plot written by evan 
     def plot(self,x_data_array,y_data_array, param_label,title):
         x = self.data_obj.get_x()

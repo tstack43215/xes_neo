@@ -1,11 +1,11 @@
 import sys,glob,re,os
 import numpy as np
 import fnmatch
-import xps_data
+import xes_data
 import matplotlib.pyplot as plt
 import copy
-from xps_individual import *
-from xps_fit import *
+from xes_individual import *
+from xes_fit import *
 
 """
 Author: Evan Restuccia evan@restuccias.com
@@ -33,7 +33,7 @@ def natural_keys(text):
     '''
     return [ atoi(c) for c in re.split(r'(\d+)', text) ]
 
-class xps_analysis():
+class xes_analysis():
     def __init__(self,dirs,params):
         self.dirs = dirs
         fileName = params['fileName']
@@ -53,6 +53,9 @@ class xps_analysis():
         
         self.x = self.data_obj.get_x()
         self.y = self.data_obj.get_y()
+        self.title = 'Fit'
+        self.xlabel = 'Energy (eV)'
+        self.ylabel= 'Counts/s'
 
         #number of parameters that the GA fit
         #self.number_of_parameters = self.calculate_number_of_params(self.peaks,self.bkgns)
@@ -262,6 +265,9 @@ class xps_analysis():
             if Type.lower() == 'shirley-sherwood':
                 bkgns2[bkgn_index].set_shirley_sherwood(param_list)
                 bkgn_index +=1
+            if Type.lower() == 'linear':
+                bkgns2[bkgn_index].set_linear(param_list)
+                bkgn_index +=1
             
 
         '''    
@@ -351,6 +357,9 @@ class xps_analysis():
             # ax.plot(self.x_slice,self.y_slice,'r--',linewidth=1.2,label='Slice Data')
             plt.plot(self.x,self.y_model,'r',linewidth=1,label='Fit')
             #plt.plot(self.x_linear,self.y_linear,'--',color='tab:purple')
+            plt.title(title)
+            plt.xlabel('Energy (eV)')
+            plt.ylabel('Counts/s')
             plt.legend()
         else:
             ax  = fig_gui.add_subplot(111)
@@ -369,6 +378,9 @@ class xps_analysis():
             for i in range(len(bkgns)):
                 self.background = bkgns[i].getY(self.x,self.y)
             ax.plot(self.x,self.background,'g-',linewidth =1, label='background')
+            # ax.title(str('Fit'))
+            # ax.xlabel(str('Energy (eV)'))
+            # ax.ylabel(str('Counts/s'))
             #ax.invert_xaxis()
 
             #ax.plot(self.x_linear,self.y_linear,'--',color='tab:purple')

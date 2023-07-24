@@ -243,7 +243,7 @@ class background():
     def get(self):
        if self.bkgnType == 'Shirley-Sherwood':
             return [self.k, self.bkgnType]
-       elif self.bkgnType == 'linear':
+       elif self.bkgnType.lower() == 'linear':
             return [self.background,self.bkgnType]
        elif self.bkgnType == 'Exponential':
             return [self.bkgnType]

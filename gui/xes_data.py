@@ -1,6 +1,6 @@
 import numpy as np
 
-class xps_data():
+class xes_data():
     def __init__(self,fileName,skipLn):
         self.fileName = fileName
         self.skipLn = skipLn #int represnting files to skip

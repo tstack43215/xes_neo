@@ -1,6 +1,7 @@
 """
 Created 7/5/23
-File is a copy of xps_individual in the GA folder, but with some modifications to make it work with xps analysis file:
+Created the file, left out set peak to manually set a peak and its
+parameters, it seems non essential for now
 -Evan Restuccia (evan@restuccias.com)
 """
 from tkinter import N
@@ -29,10 +30,10 @@ class Individual():
         Then we add our binding energy to it to move the range to the right spot
         """
         try:
-            BE_range = pars_range['Binding Energy']
-            BE1,BE2 =BE_range[0],BE_range[1]
-            binding_energy = pars_range['BE']
-            pars_range['Binding Energy'][0],pars_range['Binding Energy'][1] = [BE_range[0] + binding_energy, BE_range[1] + binding_energy,]
+            peak_energy_range = pars_range['Peak Energy']
+            PeakEnergy1,PeakEnergy2 =peak_energy_range[0],peak_energy_range[1]
+            binding_energy = pars_range['Peak Energy Guess']
+            pars_range['Peak Energy'][0],pars_range['Peak Energy'][1] = [peak_energy_range[0] + binding_energy, peak_energy_range[1] + binding_energy,]
         except:
             #Special option if youre creating a custom individual(i.e. for analysis)
             if pars_range =='':
@@ -44,9 +45,7 @@ class Individual():
         for i in range(self.nBackgrounds):
             self.bkgnArr[i] = background(pars_range,backgrounds[i])
         
-        print(self.peakArr)
-        if pars_range != '':
-            pars_range['Binding Energy'][0],pars_range['Binding Energy'][1] = BE1,BE2
+        pars_range['Peak Energy'][0],pars_range['Peak Energy'][1] = PeakEnergy1,PeakEnergy2
         
 
 
@@ -60,7 +59,6 @@ class Individual():
     #adds all backgrounds and peaks as one y value array
     def getFit(self,x,y):
         yFit = [0]*len(x)
-        print(self.peakArr)
         for i in range(self.nPeaks):
             yFit += self.peakArr[i].peakFunc(x)
         for i in range(self.nBackgrounds):
@@ -68,40 +66,11 @@ class Individual():
         
         return yFit
 
-    def getFitWithComponents(self,x,y):
-        yFit = [0]*len(x)
-        print(self.peakArr)
-        bkgn_components_arr = []
-        peak_components_arr = []
-        for i in range(self.nPeaks):
-            peakComp =  self.peakArr[i].peakFunc(x)
-            yFit += peakComp
-            peak_components_arr.append(peakComp)
-        for i in range(self.nBackgrounds):
-            bkgnComp = self.bkgnArr[i].getY(x,y)
-            yFit += bkgnComp
-            bkgn_components_arr.append(bkgnComp)
-        
-        #inefficient but only needs to work a few times so it should be fine
-        for i in range(len(peak_components_arr)):
-            for l in range(len(bkgn_components_arr)):
-                for k in range(len(x)):
-                    peak_components_arr[i][k] += bkgn_components_arr[l][k]
-        return yFit,peak_components_arr,bkgn_components_arr
-
     def get(self):
         """
         Get the whole set
         """
         return (self.peakArr + self.bkgnArr)
-    
-    def get_params(self):
-        params = []
-        for i in range(len(self.peakArr)):
-            params.append(self.peakArr[i].get())
-        for i in range(len(self.bkgnArr)):
-            params.append(self.bkgnArr[i].get())
-        return params
 
     def get_peak(self,i):
         return self.peakArr[i].get()

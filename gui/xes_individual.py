@@ -1,13 +1,12 @@
 """
 Created 7/5/23
-Created the file, left out set peak to manually set a peak and its
-parameters, it seems non essential for now
+File is a copy of xps_individual in the GA folder, but with some modifications to make it work with xps analysis file:
 -Evan Restuccia (evan@restuccias.com)
 """
 from tkinter import N
 
 from matplotlib.bezier import get_parallels
-from xps_fit import peak,background
+from xes_fit import peak,background
 
 class Individual():
     def __init__(self,backgrounds,peaks,pars_range=''):
@@ -29,40 +28,27 @@ class Individual():
         we take the range, which right now is something like (0,.2), i.e. the allowed variance in BE
         Then we add our binding energy to it to move the range to the right spot
         """
-        if 'SVSC_shirley' in backgrounds:
-            self.SVSC_toggle = True
-        else:
-            self.SVSC_toggle = False
-        for i in range(pars_range['npeaks']):
- 
-            range_key = 'Binding Energy'
-            guess_key = 'BE'
-            BE_range = pars_range[range_key]
-            BE1,BE2 =BE_range[0],BE_range[1]
-            binding_energy = pars_range[guess_key][i]
-            pars_range[range_key][0],pars_range[range_key][1] = [BE_range[0] + binding_energy, BE_range[1] + binding_energy,]
-            
-            #print("Calculated range is " + str(pars_range[range_key][0]) + " " + str(pars_range[range_key][1]))
-            self.peakArr[i] = peak(pars_range,peaks[i])
-            if self.SVSC_toggle:
-                self.peakArr[i].SVSC_toggle(self.SVSC_toggle) #activate peak shirley
-            
-            pars_range[range_key][0],pars_range[range_key][1] = BE1,BE2
-        '''
+        try:
+            peak_energy_range = pars_range['Peak Energy']
+            PeakEnergy1,PeakEnergy2 =peak_energy_range[0],peak_energy_range[1]
+            binding_energy = pars_range['Peak Energy Guess']
+            pars_range['Peak Energy'][0],pars_range['Peak Energy'][1] = [peak_energy_range[0] + binding_energy, peak_energy_range[1] + binding_energy,]
         except:
             #Special option if youre creating a custom individual(i.e. for analysis)
             if pars_range =='':
                 pass
-            else:
-                print("Error modding guesses")
-                exit()
-        '''
-
         
         #each index in the peaks/background array is the name of the peak/background type to be used
+        for i in range(self.nPeaks):
+            self.peakArr[i] = peak(pars_range,peaks[i])
         for i in range(self.nBackgrounds):
             self.bkgnArr[i] = background(pars_range,backgrounds[i])
         
+        print(self.peakArr)
+        if pars_range != '':
+            pars_range['Peak Energy'][0],pars_range['Peak Energy'][1] = PeakEnergy1,PeakEnergy2
+        
+
 
 
     def add_peak(self,peakType):
@@ -74,17 +60,34 @@ class Individual():
     #adds all backgrounds and peaks as one y value array
     def getFit(self,x,y):
         yFit = [0]*len(x)
+        print(self.peakArr)
         for i in range(self.nPeaks):
-            if self.SVSC_toggle:
-                peak_y,svsc_y = self.peakArr[i].peakFunc(x)
-                yFit += peak_y
-                yFit += svsc_y
-            else:
-                yFit += self.peakArr[i].peakFunc(x)
+            yFit += self.peakArr[i].peakFunc(x)
         for i in range(self.nBackgrounds):
             yFit += self.bkgnArr[i].getY(x,y)
         
         return yFit
+
+    def getFitWithComponents(self,x,y):
+        yFit = [0]*len(x)
+        print(self.peakArr)
+        bkgn_components_arr = []
+        peak_components_arr = []
+        for i in range(self.nPeaks):
+            peakComp =  self.peakArr[i].peakFunc(x)
+            yFit += peakComp
+            peak_components_arr.append(peakComp)
+        for i in range(self.nBackgrounds):
+            bkgnComp = self.bkgnArr[i].getY(x,y)
+            yFit += bkgnComp
+            bkgn_components_arr.append(bkgnComp)
+        
+        #inefficient but only needs to work a few times so it should be fine
+        for i in range(len(peak_components_arr)):
+            for l in range(len(bkgn_components_arr)):
+                for k in range(len(x)):
+                    peak_components_arr[i][k] += bkgn_components_arr[l][k]
+        return yFit,peak_components_arr,bkgn_components_arr
 
     def get(self):
         """
@@ -94,19 +97,11 @@ class Individual():
     
     def get_params(self):
         params = []
-        #fetches all the params as independent lists
         for i in range(len(self.peakArr)):
             params.append(self.peakArr[i].get())
         for i in range(len(self.bkgnArr)):
             params.append(self.bkgnArr[i].get())
-
-        #puts it in one array
-        for i in range(1,len(params)):
-            for k in range(len(params[i])):
-                params[0].append(params[i][k])
-
-        #print("Params : " + str(params[0]))
-        return params[0]
+        return params
 
     def get_peak(self,i):
         return self.peakArr[i].get()
@@ -122,27 +117,11 @@ class Individual():
     def mutate_(self,chance):
         for peak in self.peakArr:
             peak.mutate(chance)
-        for bkgn in self.bkgnArr:
-            bkgn.mutate(chance)
     
-    #forces a given peak to have the given values, returns 0 on success, -1 on failure
-    def setPeak(self,i,param_arr):
-        #param array comes in with its last element indicating its type
-        peakType = param_arr[len(param_arr)-1]
-        #if param_array is voigt, it comes in form [BE,Gauss,Lorentz,Amplitude,'Voigt']
-        if peakType.lower() == 'voigt':
-            self.peakArr[i].set_voigt(param_arr)
-            return 0
-        else:
-            return -1
+    def setPeak(self,i,BE,gauss,lorentz,amp):
+        self.peakArr[i].set(BE,gauss,lorentz,amp)
         
-    def setBkgn(self,i,param_arr):
-        bkgnType = param_arr[len(param_arr)-1]
-        #if param_array is voigt, it comes in form [BE,Gauss,Lorentz,Amplitude,'Voigt']
-        if bkgnType.lower() == 'shirley-sherwood':
-            self.bkgnArr[i].set_shirley_sherwood(param_arr)
-        if bkgnType.lower() == 'linear':
-            self.bkgnArr[i].set_linear(param_arr)
+
 
     def verbose(self):
         """

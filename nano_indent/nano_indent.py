@@ -8,9 +8,9 @@ from pathrange import Pathrange_limits  #may be deletable/ built for XAFS
 from nano_neo_data import NanoIndent_Data
 
 
-from xps_individual import Individual
-from xps_fit import peak,background
-from xps_data import xps_data
+from xes_individual import Individual
+from xes_fit import peak,background
+from xes_data import xes_data
 
 from copy import deepcopy #fixes bug at line 70ish with deepcopy
 """
@@ -132,7 +132,7 @@ class NANO_GA:
         """
 
         # data = np.genfromtxt(self.data_file,delimiter=',',skip_header=1)
-        self.data_obj = xps_data(self.data_file,1)
+        self.data_obj = xes_data(self.data_file,1)
 
         self.x_slice = self.data_obj.get_x()
         self.y_slice = self.data_obj.get_y()
@@ -142,8 +142,8 @@ class NANO_GA:
 
 
         self.pars_range = {
-            'Binding Energy': BE_range,
-            'BE':BE_guess,
+            'Peak Energy': peak_energy_range,
+            'Peak Energy Guess': peak_energy_guess,
             'Gaussian': sigma_range,
             'Lorentzian': fwhm_range,
             'Amplitude' : amp_range,
