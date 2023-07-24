@@ -1213,57 +1213,57 @@ class App():
         """
         self.analysis_obj = Analysis_plot(self.analysis_tab)
 
-        # analysis_hf = StringVar(self.analysis_tab, 0.0)
-        # analysis_m = StringVar(self.analysis_tab, 0.0)
-        # analysis_A = StringVar(self.analysis_tab, 0.0)
-        # analysis_elastic = StringVar(self.analysis_tab, 0.0)
-        # analysis_RedMod = StringVar(self.analysis_tab, 0.0)
-        # analysis_Stiff = StringVar(self.analysis_tab, 0.0)
-        # analysis_Hardness = StringVar(self.analysis_tab, 0.0)
-        # analysis_MaxL = StringVar(self.analysis_tab, 0.0)
-        # analysis_MaxD = StringVar(self.analysis_tab, 0.0)
+        analysis_hf = StringVar(self.analysis_tab, 0.0)
+        analysis_m = StringVar(self.analysis_tab, 0.0)
+        analysis_A = StringVar(self.analysis_tab, 0.0)
+        analysis_elastic = StringVar(self.analysis_tab, 0.0)
+        analysis_RedMod = StringVar(self.analysis_tab, 0.0)
+        analysis_Stiff = StringVar(self.analysis_tab, 0.0)
+        analysis_Hardness = StringVar(self.analysis_tab, 0.0)
+        analysis_MaxL = StringVar(self.analysis_tab, 0.0)
+        analysis_MaxD = StringVar(self.analysis_tab, 0.0)
 
         # For now put in placeholders
         analysis_button = ttk.Button(self.analysis_tab, text="Select Folder",
                                      command=select_analysis_folder)  # Add command to export data
         analysis_button.grid(column=0, row=0, sticky=(W, E), padx=self.padx, pady=self.pady, columnspan=2)
 
-        # entry_hf_best = ttk.Label(self.analysis_tab, textvariable=analysis_hf, font=self.entryFont, borderwidth=2,
-        #                           relief="groove", background='#a9a9a9')
-        # entry_hf_best.grid(column=1, row=1, sticky=(W, E), padx=self.padx)
+        entry_hf_best = ttk.Label(self.analysis_tab, textvariable=analysis_hf, font=self.entryFont, borderwidth=2,
+                                  relief="groove", background='#a9a9a9')
+        entry_hf_best.grid(column=1, row=1, sticky=(W, E), padx=self.padx)
 
-        # entry_m_best = ttk.Label(self.analysis_tab, textvariable=analysis_m, font=self.entryFont, borderwidth=2,
-        #                          relief="groove", background='#a9a9a9')
-        # entry_m_best.grid(column=1, row=2, sticky=(W, E), padx=self.padx)
+        entry_m_best = ttk.Label(self.analysis_tab, textvariable=analysis_m, font=self.entryFont, borderwidth=2,
+                                 relief="groove", background='#a9a9a9')
+        entry_m_best.grid(column=1, row=2, sticky=(W, E), padx=self.padx)
 
-        # entry_a_best = ttk.Label(self.analysis_tab, textvariable=analysis_A, font=self.entryFont, borderwidth=2,
-        #                          relief="groove", background='#a9a9a9')
-        # entry_a_best.grid(column=1, row=3, sticky=(W, E), padx=self.padx)
+        entry_a_best = ttk.Label(self.analysis_tab, textvariable=analysis_A, font=self.entryFont, borderwidth=2,
+                                 relief="groove", background='#a9a9a9')
+        entry_a_best.grid(column=1, row=3, sticky=(W, E), padx=self.padx)
 
-        # entry_modulus = ttk.Label(self.analysis_tab, textvariable=analysis_elastic, font=self.entryFont, borderwidth=2,
-        #                           relief="groove", background='#a9a9a9')
-        # entry_modulus.grid(column=1, row=4, sticky=(W, E), padx=self.padx)
+        entry_modulus = ttk.Label(self.analysis_tab, textvariable=analysis_elastic, font=self.entryFont, borderwidth=2,
+                                  relief="groove", background='#a9a9a9')
+        entry_modulus.grid(column=1, row=4, sticky=(W, E), padx=self.padx)
 
-        # entry_red_modulus = ttk.Label(self.analysis_tab, textvariable=analysis_RedMod, font=self.entryFont,
-        #                               borderwidth=2,
-        #                               relief="groove", background='#a9a9a9')
-        # entry_red_modulus.grid(column=1, row=5, sticky=(W, E), padx=self.padx)
+        entry_red_modulus = ttk.Label(self.analysis_tab, textvariable=analysis_RedMod, font=self.entryFont,
+                                      borderwidth=2,
+                                      relief="groove", background='#a9a9a9')
+        entry_red_modulus.grid(column=1, row=5, sticky=(W, E), padx=self.padx)
 
-        # entry_stiff = ttk.Label(self.analysis_tab, textvariable=analysis_Stiff, font=self.entryFont, borderwidth=2,
-        #                         relief="groove", background='#a9a9a9')
-        # entry_stiff.grid(column=1, row=6, sticky=(W, E), padx=self.padx)
+        entry_stiff = ttk.Label(self.analysis_tab, textvariable=analysis_Stiff, font=self.entryFont, borderwidth=2,
+                                relief="groove", background='#a9a9a9')
+        entry_stiff.grid(column=1, row=6, sticky=(W, E), padx=self.padx)
 
-        # entry_hard = ttk.Label(self.analysis_tab, textvariable=analysis_Hardness, font=self.entryFont, borderwidth=2,
-        #                        relief="groove", background='#a9a9a9')
-        # entry_hard.grid(column=1, row=7, sticky=(W, E), padx=self.padx)
+        entry_hard = ttk.Label(self.analysis_tab, textvariable=analysis_Hardness, font=self.entryFont, borderwidth=2,
+                               relief="groove", background='#a9a9a9')
+        entry_hard.grid(column=1, row=7, sticky=(W, E), padx=self.padx)
 
-        # entry_max_load = ttk.Label(self.analysis_tab, textvariable=analysis_MaxL, font=self.entryFont, borderwidth=2,
-        #                            relief="groove", background='#a9a9a9')
-        # entry_max_load.grid(column=1, row=8, sticky=(W, E), padx=self.padx)
+        entry_max_load = ttk.Label(self.analysis_tab, textvariable=analysis_MaxL, font=self.entryFont, borderwidth=2,
+                                   relief="groove", background='#a9a9a9')
+        entry_max_load.grid(column=1, row=8, sticky=(W, E), padx=self.padx)
 
-        # entry_max_depth = ttk.Label(self.analysis_tab, textvariable=analysis_MaxD, font=self.entryFont, borderwidth=2,
-        #                             relief="groove", background='#a9a9a9')
-        # entry_max_depth.grid(column=1, row=9, sticky=(W, E), padx=self.padx)
+        entry_max_depth = ttk.Label(self.analysis_tab, textvariable=analysis_MaxD, font=self.entryFont, borderwidth=2,
+                                    relief="groove", background='#a9a9a9')
+        entry_max_depth.grid(column=1, row=9, sticky=(W, E), padx=self.padx)
         button_plot = ttk.Button(self.analysis_tab,
                                  text="Plot Best Fit",
                                  command=calculate_and_plot)  # Add command to plot data using postprocessing
@@ -1271,17 +1271,17 @@ class App():
         button_export = ttk.Button(self.analysis_tab, text="Export Values")  # Add command to export data
         button_export.grid(column=0, row=11, sticky=(W, E), padx=self.padx, pady=self.pady, columnspan=2)
 
-        # self.analysis_tab.columnconfigure(3, weight=1)
-        # self.analysis_tab.rowconfigure(0, weight=1)
-        # self.analysis_tab.rowconfigure(1, weight=1)
-        # self.analysis_tab.rowconfigure(2, weight=1)
-        # self.analysis_tab.rowconfigure(3, weight=1)
-        # self.analysis_tab.rowconfigure(4, weight=1)
-        # self.analysis_tab.rowconfigure(5, weight=1)
-        # self.analysis_tab.rowconfigure(6, weight=1)
-        # self.analysis_tab.rowconfigure(7, weight=1)
-        # self.analysis_tab.rowconfigure(8, weight=1)
-        # self.analysis_tab.rowconfigure(9, weight=1)
+        self.analysis_tab.columnconfigure(3, weight=1)
+        self.analysis_tab.rowconfigure(0, weight=1)
+        self.analysis_tab.rowconfigure(1, weight=1)
+        self.analysis_tab.rowconfigure(2, weight=1)
+        self.analysis_tab.rowconfigure(3, weight=1)
+        self.analysis_tab.rowconfigure(4, weight=1)
+        self.analysis_tab.rowconfigure(5, weight=1)
+        self.analysis_tab.rowconfigure(6, weight=1)
+        self.analysis_tab.rowconfigure(7, weight=1)
+        self.analysis_tab.rowconfigure(8, weight=1)
+        self.analysis_tab.rowconfigure(9, weight=1)
 
     def stop_term(self):
         # print("In stop term")
