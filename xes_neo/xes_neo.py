@@ -302,6 +302,7 @@ class XES_GA:
                     self.mut_chance = abs(self.mut_chance)
 
 
+
         for i in range(self.npops):
             if random.random()*100 < self.mut_chance:
                 self.nmutate += 1
@@ -323,61 +324,30 @@ class XES_GA:
             self.Populations[indi].mutate_(self.mut_chance)
             newIndi = self.Populations[indi]
             # Mutate every gene in the Individuals
-        ''' We don't need this for now
         if self.mut_opt == 2:
-            # initalize_variable:
-            self.nmutate_success = 0
-            og_indi = copy.deepcopy(self.Populations[indi])
-            og_score = self.fitness(og_indi)
-            mut_indi = copy.deepcopy(self.Populations[indi])
-            mut_indi.mutate_(self.mut_chance)
-            mut_score = self.fitness(mut_indi)
+            n_success = 0
+            og_individual = self.generateIndividual()
+            # Create a new individual with the same parameters
+            og_pars = copy.copy(self.Populations[indi].get_func()[0].get())
+            og_individual.set_path(0,og_pars)
+            og_score = fitness.fitness((og_individual,self.xspec))
 
-            with np.errstate(divide='raise', invalid='raise'):
-                try:
-                    t_bot = (np.log(1-(self.genNum/self.ngen)+self.tol))
-                except FloatingPointError:
-                    print(self.genNum)
-                    print(self.ngen)
-                    print(1-(self.genNum/self.ngen))
-                    t_bot = (np.log(1-(self.genNum/self.ngen)+self.tol))
+            new_individual = self.generateIndividual()
+            mut_score = fitness.fitness((new_individual,self.xspec))
 
-            T = - self.bestDiff/t_bot
+            T = - self.bestDiff/(np.log(1-(self.genNum/self.ngen))+ np.nan)
             if mut_score < og_score:
-                self.nmutate_success = self.nmutate_success + 1;
-                newIndi = mut_indi
-            elif np.exp(-(mut_score-og_score)/(T+self.tol)) > np.random.uniform():
+                n_success = n_success + 1
 
-                self.nmutate_success = self.nmutate_success + 1;
-                newIndi = mut_indi
+                newIndi = new_individual
+            elif np.exp(-(mut_score-og_score)/(T+np.nan)) > np.random.uniform():
+                n_success = n_success + 1
+                newIndi = new_individual
             else:
-                newIndi = og_indi
+                newIndi = og_individual
 
-        if self.mut_opt == 3:
-            def delta_fun(t,delta_val):
-                rnd = np.random.random()
-                return delta_val*(1-rnd**(1-(t/self.ngen))**5)
-
-            og_indi = copy.deepcopy(self.Populations[indi])
-            og_data = og_indi.get_var()
-            for i,path in enumerate(og_data):
-                print(i,path)
-                arr = np.random.randint(2,size=3)
-                for j in range(len(arr)):
-                    new_path = []
-                    val = path[j]
-                    if arr[j] == 0:
-                        UP = self.pathrange_Dict[i].get_lim()[j+1][1]
-                        del_val = delta_fun(self.genNum,UP-val)
-                        val = val + del_val
-                    if arr[j] == 1:
-                        LB = self.pathrange_Dict[i].get_lim()[j+1][0]
-                        del_val = delta_fun(self.genNum,val-LB)
-                    new_path.append(val)
-                self.Populations[indi].set_path(i,new_path[0],new_path[1],new_path[2])
-        if self.mut_opt == 4:
-            newIndi = self.generateIndividual(self.bestE0)
-        '''
+            self.nmutate_success.append(n_success)
+            # self.logger.info(f"Metroplis Hasting Success: {nmutate_success}")
         return newIndi
 
     def selectFromPopulation(self):

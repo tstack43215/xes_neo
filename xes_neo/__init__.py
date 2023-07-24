@@ -1,5 +1,5 @@
 # global os
-__version__ = '0.0.5'
+__version__ = '0.0.1'
 __author__ = 'Andy Lau'
 __email__ = 'andylau@u.boisestate.edu'
 
