@@ -1,2 +1,0 @@
-[console_scripts]
-nano_neo = nano_indent.nano_indent:main
