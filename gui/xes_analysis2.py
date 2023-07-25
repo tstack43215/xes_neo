@@ -378,6 +378,8 @@ class xes_analysis():
             for i in range(len(bkgns)):
                 self.background = bkgns[i].getY(self.x,self.y)
             ax.plot(self.x,self.background,'c-',linewidth =1, label='background')
+            ax.set_xlabel('Energy (eV)')
+            ax.set_ylabel('Counts/s')
             # ax.title(str('Fit'))
             # ax.xlabel(str('Energy (eV)'))
             # ax.ylabel(str('Counts/s'))
