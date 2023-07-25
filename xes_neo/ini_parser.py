@@ -1,6 +1,7 @@
-from xes_fit import background
-from input_arg import *
-from helper import *
+# from xes_fit import background
+from .input_arg import *
+from . import helper
+
 # ------------------------------------
 # Andy Lau
 # 4/22/2019
@@ -47,7 +48,7 @@ def optional_var(dict,name_var,alt_var=None,type_var=int):
 	# boolean needs special attentions
 	if type_var == bool:
 		if name_var in dict:
-			return_var = str_to_bool(dict[name_var])
+			return_var = helper.str_to_bool(dict[name_var])
 		else:
 			return_var = alt_var
 	elif type_var == None:
@@ -132,6 +133,6 @@ print("Background Range is " + str(background_range))
 print("Slope Range is " + str(slope_range))
 
 # Output
-printgraph = str_to_bool(Outputs_dict['print_graph'])
-num_output_paths = str_to_bool(Outputs_dict['num_output_paths'])
+printgraph = helper.str_to_bool(Outputs_dict['print_graph'])
+num_output_paths = helper.str_to_bool(Outputs_dict['num_output_paths'])
 steady_state = optional_var(Outputs_dict,'steady_state_exit',False,bool)

@@ -153,6 +153,8 @@ class xes_analysis():
         print("peak attributes read are:")
         #print(self.best_Fit_n)
         print(self.best_ind.get_params())
+
+        print(self.best_ind.getFit(self.x,self.y))
         self.y_model,self.peak_components,self.bkgn_components = self.best_ind.getFitWithComponents(self.x,self.y)
         '''
         self.y_model_components = self.best_ind.get_peaks()
@@ -222,6 +224,7 @@ class xes_analysis():
             #arr = i.reshape((1,-1))
             ind = self.create_individual_from_bestfit(i)  
             score.append(self.fitness(ind))
+            
         bestScore = np.nanargmin(score)
         bestFit = full_matrix[bestScore]
         if plot:
@@ -323,8 +326,7 @@ class xes_analysis():
         for j in range(len(self.x)):
 
            # loss = loss + (yTotal[j]*self.x_array[j]**2 - self.y_array[j]* self.x_array[j]**2 )**2
-           # loss = loss + (yTotal[j]- self.y[j])**2
-           loss = loss + (((yTotal[j]- self.y[j])**2)*self.y[j])
+            loss = loss + (((yTotal[j]- self.y[j])**2) * self.y[j])
         # if loss == np.nan:
             # print(individual[0].verbose())
         return loss
@@ -368,17 +370,18 @@ class xes_analysis():
             ax.plot(self.x,self.y_model,'r--',linewidth=1.2,label='Fit')
             if(len(self.peak_components)>1):
                 for i,peak in enumerate(self.peak_components):
-                    ax.plot(self.x,peak,'g--',linewidth = 1,label=('Peak' + str(i)))
+                    ax.plot(self.x,peak,'--',linewidth = 1,label=('Peak ' + str(i)))
             if(len(self.bkgn_components)>1):
                 for i,bkgn in enumerate(self.bkgn_components):
-                    ax.plot(self.x,bkgn,'b--',linewidth = 1,label=('Bkgn' + str(i)))
+                    ax.plot(self.x,bkgn,'b--',linewidth = 1,label=('Bkgn ' + str(i)))
 
             bkgns = self.best_ind.get_backgrounds()
-            print(bkgns)
             self.background = [] * len(self.x)
             for i in range(len(bkgns)):
                 self.background = bkgns[i].getY(self.x,self.y)
-            ax.plot(self.x,self.background,'g-',linewidth =1, label='background')
+            ax.plot(self.x,self.background,'c-',linewidth =1, label='background')
+            ax.set_xlabel('Energy (eV)')
+            ax.set_ylabel('Counts/s')
             # ax.title(str('Fit'))
             # ax.xlabel(str('Energy (eV)'))
             # ax.ylabel(str('Counts/s'))

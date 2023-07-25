@@ -1,22 +1,25 @@
 import enum
-from helper import *
-from import_lib import *
-from ini_parser import *
+from . import helper
+from .import_lib import *
+from .ini_parser import *
 #from pathObj import OliverPharr
 #from .individual import Individual
-from pathrange import Pathrange_limits  #may be deletable/ built for XAFS
-from nano_neo_data import NanoIndent_Data
+# from .pathrange import Pathrange_limits  #may be deletable/ built for XAFS
+# from .nano_neo_data import NanoIndent_Data
 
 
-from xes_individual import Individual
-from xes_fit import peak,background
-from xes_data import xes_data
+from .xes_individual import Individual
+from .xes_fit import peak,background
+from .xes_data import xes_data
 
 from copy import deepcopy #fixes bug at line 70ish with deepcopy
 """
 Author: Andy Lau
 """
 
+# Setup some default constraints
+MAX = 3.40282e+38
+MIN = 1.17549e-38
 
 class XES_GA:
 
@@ -36,10 +39,10 @@ class XES_GA:
         print("Initializing Variables")
         self.genNum = 0
         self.nChild = 4
-        self.globBestFit = [0,0]
-        self.currBestFit = [0,0]
-        self.bestDiff = 9999e11
-        self.bestBest = 999999999e11
+        self.globBestFit = [0,np.inf]
+        self.currBestFit = [0,np.inf]
+        self.bestDiff = np.inf
+        self.bestBest = np.inf
         self.diffCounter = 0
 
         self.pathDictionary = {}
@@ -132,15 +135,23 @@ class XES_GA:
         """
 
         # data = np.genfromtxt(self.data_file,delimiter=',',skip_header=1)
-        self.data_obj = xes_data(self.data_file,1)
+        self.data_obj = xes_data(self.data_file,0)
 
         self.x_slice = self.data_obj.get_x()
         self.y_slice = self.data_obj.get_y()
         self.x_array = self.x_slice
         self.y_array = self.y_slice
 
+        yAvg = 0
+        yTot = 0
+        j=0
+        for i,yVal in enumerate(self.data_obj.get_y()):
+            yTot += yVal
+            j=i
+        yAvg = yTot/(j+1)
+        background_range[1] = yAvg
 
-
+        amp_range[1] = max(self.data_obj.get_y())
         self.pars_range = {
             'Peak Energy': peak_energy_range,
             'Peak Energy Guess': peak_energy_guess,
@@ -242,7 +253,7 @@ class XES_GA:
         # ray.init()
         self.logger.info("---------------------------------------------------------")
         self.logger.info(datetime.datetime.fromtimestamp(self.st).strftime('%Y-%m-%d %H:%M:%S'))
-        self.logger.info(f"{bcolors.BOLD}Gen: {bcolors.ENDC}{self.genNum+1}")
+        self.logger.info(f"{helper.bcolors.BOLD}Gen: {helper.bcolors.ENDC}{self.genNum+1}")
 
         self.genNum += 1
 
@@ -255,9 +266,9 @@ class XES_GA:
 
         with np.printoptions(precision=5, suppress=True):
             self.logger.info("Different from last best fit: " +str(self.bestDiff))
-            self.logger.info(bcolors.BOLD + "Best fit: " + bcolors.OKBLUE + str(self.currBestFit[1]) + bcolors.ENDC)
+            self.logger.info(helper.bcolors.BOLD + "Best fit: " + helper.bcolors.OKBLUE + str(self.currBestFit[1]) + helper.bcolors.ENDC)
             self.logger.info("Best fit combination:\n" + str((self.sorted_population[0][0].get_params())))
-            self.logger.info(bcolors.BOLD + "History Best: " + bcolors.OKBLUE + str(self.globBestFit[1]) +bcolors.ENDC)
+            self.logger.info(helper.bcolors.BOLD + "History Best: " + helper.bcolors.OKBLUE + str(self.globBestFit[1]) + helper.bcolors.ENDC)
             self.logger.info("NanCounter: " + str(self.nan_counter))
             self.logger.info("History Best Indi:\n" + str((self.globBestFit[0].get_params())))
 
@@ -311,9 +322,14 @@ class XES_GA:
         self.logger.info("Mutate Times: " + str(self.nmutate))
 
 
-    def mutateIndi(self,indi):
-        """
-        Generate new individual during mutation operator
+    def mutateIndi(self,indi :int) -> Individual:
+        """Mutate the Individual
+
+        Args:
+            indi (int): index of the populations
+
+        Returns:
+            Individual: Mutated Individuals
         """
         if self.mut_opt == 0:
             # Create a new individual with Rechenberg
@@ -324,29 +340,31 @@ class XES_GA:
             self.Populations[indi].mutate_(self.mut_chance)
             newIndi = self.Populations[indi]
             # Mutate every gene in the Individuals
+
         if self.mut_opt == 2:
             n_success = 0
             og_individual = self.generateIndividual()
             # Create a new individual with the same parameters
-            og_pars = copy.copy(self.Populations[indi].get_func()[0].get())
-            og_individual.set_path(0,og_pars)
-            og_score = fitness.fitness((og_individual,self.xspec))
+            og_pars = copy.copy(self.Populations[indi].get_peaks())
+
+
+            og_individual.setPeaks(og_pars)
+            og_score = self.fitness(og_individual)
 
             new_individual = self.generateIndividual()
-            mut_score = fitness.fitness((new_individual,self.xspec))
+            mut_score = self.fitness(new_individual)
 
-            T = - self.bestDiff/(np.log(1-(self.genNum/self.ngen))+ np.nan)
+            T = - self.bestDiff/(np.log(1-(self.genNum/self.ngen)+MIN))
             if mut_score < og_score:
                 n_success = n_success + 1
 
                 newIndi = new_individual
-            elif np.exp(-(mut_score-og_score)/(T+np.nan)) > np.random.uniform():
+            elif np.exp(-(mut_score-og_score)/(T+MIN)) > np.random.uniform():
                 n_success = n_success + 1
                 newIndi = new_individual
             else:
                 newIndi = og_individual
 
-            self.nmutate_success.append(n_success)
             # self.logger.info(f"Metroplis Hasting Success: {nmutate_success}")
         return newIndi
 
@@ -485,18 +503,18 @@ class XES_GA:
 
     def run_verbose_start(self):
         self.logger.info("-----------Inputs File Stats---------------")
-        self.logger.info(f"{bcolors.BOLD}File{bcolors.ENDC}: {self.data_file}")
+        self.logger.info(f"{helper.bcolors.BOLD}File{helper.bcolors.ENDC}: {self.data_file}")
         #self.logger.info(f"{bcolors.BOLD}File Type{bcolors.ENDC}: {self.data_obj._ftype}")
-        self.logger.info(f"{bcolors.BOLD}File{bcolors.ENDC}: {self.output_path}")
-        self.logger.info(f"{bcolors.BOLD}Population{bcolors.ENDC}: {self.npops}")
-        self.logger.info(f"{bcolors.BOLD}Num Gen{bcolors.ENDC}: {self.ngen}")
-        self.logger.info(f"{bcolors.BOLD}Mutation Opt{bcolors.ENDC}: {self.mut_opt}")
+        self.logger.info(f"{helper.bcolors.BOLD}File{helper.bcolors.ENDC}: {self.output_path}")
+        self.logger.info(f"{helper.bcolors.BOLD}Population{helper.bcolors.ENDC}: {self.npops}")
+        self.logger.info(f"{helper.bcolors.BOLD}Num Gen{helper.bcolors.ENDC}: {self.ngen}")
+        self.logger.info(f"{helper.bcolors.BOLD}Mutation Opt{helper.bcolors.ENDC}: {self.mut_opt}")
         self.logger.info("-------------------------------------------")
 
     def run_verbose_end(self):
         self.logger.info("-----------Output Stats---------------")
         # self.logger.info(f"{bcolors.BOLD}Total)
-        self.logger.info(f"{bcolors.BOLD}Total Time(s){bcolors.ENDC}: {round(self.tt,4)}")
+        self.logger.info(f"{helper.bcolors.BOLD}Total Time(s){helper.bcolors.ENDC}: {round(self.tt,4)}")
         self.logger.info("-------------------------------------------")
 
     def run(self):
@@ -549,11 +567,12 @@ class XES_GA:
             f2 = open(self.file_data,"a")
             write = csv.writer(f2)
             bestFit = self.globBestFit[0]
-            for i in range(self.npaths):
-                #write.writerow((bestFit[i][0], bestFit[i][1], bestFit[i][2]))
-                str_pars = bestFit.get_params()
-                write.writerow(str_pars)
+            #write.writerow((bestFit[i][0], bestFit[i][1], bestFit[i][2]))
+            str_pars = bestFit.get_params()
+            write.writerow(str_pars)
             f2.write("#################################\n")
+
+            #print(", ".join(str(i) for i in bestFit.getFit(self.x_array,self.y_array)))
         finally:
             f2.close()
 

@@ -2,8 +2,8 @@
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from input_arg import *
-from helper import *
+from .input_arg import *
+from .helper import *
 
 if timeing_mode:
 # %matplotlib inline

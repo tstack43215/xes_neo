@@ -23,37 +23,32 @@ class peak():
         """
         #fetch ranges for the values from the dict
         self.paramRange= paramRange
+        self.gaussRange = np.arange(paramRange['Gaussian'][0],paramRange['Gaussian'][1],paramRange['Gaussian'][2])
+        self.lorentzRange = np.arange(paramRange['Lorentzian'][0],paramRange['Lorentzian'][1],paramRange['Lorentzian'][2])
+        self.bindingEnergyRange = np.arange(paramRange['Peak Energy'][0],paramRange['Peak Energy'][1],paramRange['Peak Energy'][2])
+        self.ampRange = np.arange(paramRange['Amplitude'][0],paramRange['Amplitude'][1],paramRange['Amplitude'][2])
         try:
-            self.gaussRange = np.arange(paramRange['Gaussian'][0],paramRange['Gaussian'][1],paramRange['Gaussian'][2])
-            self.lorentzRange = np.arange(paramRange['Lorentzian'][0],paramRange['Lorentzian'][1],paramRange['Lorentzian'][2])
-            self.bindingEnergyRange = np.arange(paramRange['Peak Energy'][0],paramRange['Peak Energy'][1],paramRange['Peak Energy'][2])
-            self.ampRange = np.arange(paramRange['Amplitude'][0],paramRange['Amplitude'][1],paramRange['Amplitude'][2])
-            try:
-                self.s_o_splittingRange = paramRange['Spin-Orbit Splitting']
-            except:
-                self.s_o_splittingRange = [0,0,0]
-            
-            
-            #fully free within their range
-            self.gaussian = np.random.choice(self.gaussRange)
-            self.lorentz = np.random.choice(self.lorentzRange)
-            self.amp = np.random.choice(self.ampRange)
-
-
-            #the range is a modifier on the input value
-            self.bindingEnergy= np.random.choice(self.bindingEnergyRange)
-            self.s_o_split = np.random.choice(self.s_o_splittingRange)
-
-            self.peakType = peakType
-            self.peak_y = []
-
-            #singlet or doublet baby - not yet functional in voigt peak func
-            self.singlet_or_doublet = singlet_or_doublet
-            self.SVSC = False
+            self.s_o_splittingRange = paramRange['Spin-Orbit Splitting']
         except:
-            #Again special escape for creating custom individuals
-            print("error finding ranges")
-            exit()
+            self.s_o_splittingRange = [0,0,0]
+        
+        
+        #fully free within their range
+        self.gaussian = np.random.choice(self.gaussRange)
+        self.lorentz = np.random.choice(self.lorentzRange)
+        self.amp = np.random.choice(self.ampRange)
+
+
+        #the range is a modifier on the input value
+        self.bindingEnergy= np.random.choice(self.bindingEnergyRange)
+        self.s_o_split = np.random.choice(self.s_o_splittingRange)
+
+        self.peakType = peakType
+        self.peak_y = []
+
+        #singlet or doublet baby - not yet functional in voigt peak func
+        self.singlet_or_doublet = singlet_or_doublet
+        self.SVSC = False
 
         self.peakType = peakType
         if(self.peakType.lower() == "voigt"):
@@ -228,21 +223,15 @@ class background():
                 self.k = np.random.choice(k_range)
             except:
                 self.k = -1
-        elif self.bkgnType == 'Linear':
+        elif self.bkgnType.lower() == 'linear':
             self.bkgn = self.linear_background
-            try:
-                self.backgroundRange = np.arange(paramRange['Background'][0],paramRange['Background'][1],paramRange['Background'][2])
-                self.slopeRange = np.arange(paramRange['Slope'][0],paramRange['Slope'][1],paramRange['Slope'][2])
+            self.backgroundRange = np.arange(paramRange['Background'][0],paramRange['Background'][1],paramRange['Background'][2])
+            self.slopeRange = np.arange(paramRange['Slope'][0],paramRange['Slope'][1],paramRange['Slope'][2])
 
-                #self.background is the b value in y = mx+b
-                self.background = np.random.choice(self.backgroundRange)
-                #self.slope = np.random.choice(self.slopeRange)
-                self.slope = 0
-            except:
-                self.slope = 0
-                #self.background = 1
-                if paramRange == '':
-                    pass
+            #self.background is the b value in y = mx+b
+            self.background = np.random.choice(self.backgroundRange)
+            #self.slope = np.random.choice(self.slopeRange)
+            self.slope = 0
         elif self.bkgnType == 'Exponential':
             self.bkgn = self.exponential_bkgn
         elif self.bkgnType == 'SVSC_shirley':
@@ -255,7 +244,7 @@ class background():
                 self.k = -1
 
         else:
-            print("Error Choosing Background in init of xps_fit")
+            print("Error Choosing Background in init of xes_fit")
             print("Background read as: " + str(self.bkgnType))
             exit()
         self.yBkgn = []
@@ -267,8 +256,12 @@ class background():
         self.bkgn(x,y)
 
 
+    def mutate(self,chance):
+        self.mutate_background_val(chance)
 
-
+    def mutate_background_val(self,chance):
+        if random.random()*100 < chance:
+            self.background = np.random.choice(self.backgroundRange)
 
 
 
@@ -276,7 +269,7 @@ class background():
     def get(self):
        if self.bkgnType == 'Shirley-Sherwood':
             return [self.k, self.bkgnType]
-       elif self.bkgnType == 'Linear':
+       elif self.bkgnType.lower() == 'linear':
             return [self.background,self.bkgnType]
        elif self.bkgnType == 'Exponential':
             return [self.bkgnType]
