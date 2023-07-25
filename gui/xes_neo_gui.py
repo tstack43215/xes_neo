@@ -492,7 +492,8 @@ class App():
         else:
             name = self.generate_ini()
             self.stop_term()
-            command = 'python ../xes_neo/xes_neo.py -i ' + f'"{name.absolute().as_posix()}"'
+            #command = 'python ../xes_neo/xes_neo.py -i ' + f'"{name.absolute().as_posix()}"'
+            command = 'exec xes_neo -i '+ f'"{name.absolute().as_posix()}"'
             print(command)
             self.proc = subprocess.Popen(''.join(command), shell=True)
             self.proc_list.append(self.proc)
