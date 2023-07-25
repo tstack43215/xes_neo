@@ -288,7 +288,7 @@ class App():
                          sigma_range=", ".join(str(i) for i in [self.sigma_min, self.sigma_max, self.sigma_delta]),
                          fwhm_range=", ".join(str(i) for i in [self.fwhm_min, self.fwhm_max, self.fwhm_delta]),
                          amp_range =",".join(str(i) for i in [self.amp_min,self.amp_max,self.amp_delta]),
-                         background_range = ", ".join(str(i) for i in [self.background_min, self.amp_max, self.background_delta]),
+                         background_range = ", ".join(str(i) for i in [self.background_min, self.background_max, self.background_delta]),
                          slope_range = ", ".join(str(i) for i in [self.slope_min, self.slope_max, self.slope_delta])
                          ))
 
