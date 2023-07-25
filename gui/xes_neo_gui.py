@@ -5,8 +5,8 @@ Version     0.2
 Date        Jul 28, 2022
 """
 '''
-Edited by: Alaina Thompson, Evan Restuccia, Tim Stack 
-Email: 
+Edited by: Alaina Thompson, Evan Restuccia, Tim Stack
+Email:
 Date: July 24, 2023
 '''
 """
@@ -54,7 +54,7 @@ class App():
         self.__version__ = 0.1
         self.root = Tk(className='XES Neo GUI')
         self.root.wm_title("XES GUI (Pre-pre-pre-Beta)")
-        self.root.geometry("875x650") #Changed size so that select folder button on Analysis tab is fully visible 
+        self.root.geometry("875x650") #Changed size so that select folder button on Analysis tab is fully visible
         self.mainframe = ttk.Notebook(self.root, padding='5')
         self.mainframe.grid(column=0, row=0, sticky=(N, W, E, S), columnspan=5)
         self.root.columnconfigure(0, weight=1)
@@ -89,7 +89,7 @@ class App():
         self.averaged_file = StringVar(self.root, 'Please choose file/s') #File to save the averaged data to
         self.num_files = DoubleVar(self.root, 0) #Number of files to be averaged after selection
         self.num_points = DoubleVar(self.root, 0) #Number of points in each data file
-        self.xPoints_for_data_plot = np.array([]) 
+        self.xPoints_for_data_plot = np.array([])
         self.yPoints_for_data_plot = np.array([])
         self.xPoints_avg = np.array([]) #Averaged x points for plotting
         self.yPoints_avg = np.array([]) #Averaged y points for plotting
@@ -107,10 +107,10 @@ class App():
         self.output_file = pathlib.Path()
         #File reading options
         self.skipLn = StringVar(self.root,"0")
-        
+
         # Waiting to create path variable for calibration because I think it will be deleted
         #self.csv_calibration_file = StringVar(self.root, "Please choose a calibration file") #--------------Will need to comment out-----------
-        self.yes_folder = IntVar() 
+        self.yes_folder = IntVar()
         self.multi_known = BooleanVar(value = False)
         self.multi_known = False  # This will change to true when the user has already said if they do/do not want to generate/run multiple files in the folder so generate ini does nto keep asking
         self.filelist = []
@@ -124,7 +124,7 @@ class App():
         # Variables for the dropdown menu
         self.file_menu = ttk.Combobox()
         self.data_obj = 0
-        
+
         # Populations Tab (column 2)________________________________________________________________________
         self.population = IntVar(self.root, 2000)
         self.num_gen = IntVar(self.root, 10)
@@ -157,7 +157,7 @@ class App():
         self.amp_min,self.amp_max,self.amp_delta = 0,5000, 0.05
         self.background_min,self.background_max,self.background_delta = 0,1.25,0.001
         self.slope_min,self.slope_max,self.slope_delta = 0,0.01, 0.00001 #Allows for a slope to be applied to the background, currently hard set to 0
-        
+
         # Plot Tab (column 5)________________________________________________________________________
         self.print_graph = BooleanVar(self.root, False)
         self.num_output_paths = BooleanVar(self.root, True)
@@ -244,7 +244,7 @@ class App():
             description_list.append(entry)
         if description_list:
             return description_list
-    
+
 
     # When the user selects a particular file from the input directory in the dropdown menu it will be assigned to the
     # csv generate from variable so that it is used for running
@@ -277,7 +277,7 @@ class App():
         for i in range(int(self.number_of_peaks.get())):
            guesses.append(self.peak_Energy_guesses[i].get())
            inputPeaks.append(self.peaks[i].get())
-        
+
         paths = ("\n\n[Paths]\nnPeaks={nPeaks} \nbackground_type = {bkgn_type} \npeak_type = {peak_type} \npeak_Energy_range = {peak_energy_range} \npeak_energy={peak_energy} \nsigma_range = "
                  "{sigma_range} \nfwhm_range = {fwhm_range} \namp_range = {amp_range} \nbackground_range = {background_range} \nslope_range = {slope_range}"
                  .format(nPeaks=int(self.number_of_peaks.get()),
@@ -291,7 +291,7 @@ class App():
                          background_range = ", ".join(str(i) for i in [self.background_min, self.amp_max, self.background_delta]),
                          slope_range = ", ".join(str(i) for i in [self.slope_min, self.slope_max, self.slope_delta])
                          ))
- 
+
         mutations = ("\n\n[Mutations]\nchance_of_mutation = {chance} \noriginal_chance_of_mutation = {original} "
                      "\nmutated_options = {opt}"
                      .format(chance=str(self.chance_of_mutation.get()),
@@ -570,7 +570,7 @@ class App():
 
 #___Input Tab____________________________________________________________________________________________________________
     def build_inputs_tab(self):
-        # Add the tab names for 
+        # Add the tab names for
         arr_input = ["Input Files: ", "Input file", "Input Folder", "Output folder", "Average Files: ", "Files to Average", "Averaged File"]
         self.description_tabs(arr_input, self.input_tab, row=[1, 2, 3, 4, 6, 7, 8])
 
@@ -580,7 +580,7 @@ class App():
         # Check button to choose file or folder input
         checkbutton_label = ttk.Label(self.input_tab, text="Check to select a folder instead of a file", font=self.labelFont)
         checkbutton_label.grid(column=1, row=1, sticky=W)
-        
+
         # File/Folder Input and Output Folder Entries
         txt_file_entry = ttk.Entry(self.input_tab, textvariable=self.csv_file, font=self.entryFont)
         txt_file_entry.grid(column=1, row=2, sticky=(W, E))
@@ -605,10 +605,10 @@ class App():
 
     # Functions______________________________________________________________________________________________
         def select_folder():
-            if self.yes_folder.get() == 1:  # When multiple input is checked 
+            if self.yes_folder.get() == 1:  # When multiple input is checked
                 csv_file_button.config(state=DISABLED)
                 csv_folder_button.config(state=NORMAL)
-                self.csv_folder.set("Please select a folder") 
+                self.csv_folder.set("Please select a folder")
                 self.csv_file.set("Folder is selected")
                 if self.pertub_check.get() == 1:  # They are also running multiple instances of each file
                     self.checkbutton_whole_folder.config(state='normal')
@@ -666,7 +666,7 @@ class App():
             os.chdir("..") #change the working directory from gui to XES
 
             all_files = filedialog.askopenfilenames(initialdir = os.getcwd(), title = "Choose txt/csv", filetypes = (("txt files", "*.txt"),("csv files","*.csv"),("all files","*.*")))
-            
+
             if not all_files:
                 self.all_files.set('Please choose files to average')
                 #os.chdir("gui")
@@ -680,7 +680,7 @@ class App():
         def select_file_to_save_averaged_data():
             os.chdir("..")
             averaged_file = filedialog.asksaveasfilename(initialdir = os.getcwd(), title = "Choose txt/csv", filetypes = (("txt files", "*.txt"),("csv files","*.csv"),("all files","*.*")))
-            
+
             if not averaged_file:
                 self.averaged_file.set('Please choose a file to save averaged data')
                 # os.chdir("gui")
@@ -692,7 +692,7 @@ class App():
         def average_selected_data():
             #Finds lines to skip at top of data that are comments
             lines_to_skip = 2
-    
+
             with open(self.all_files[0]) as file:
                 str=file.readline()
                 while(not str.__contains__('***')):
@@ -704,7 +704,7 @@ class App():
 
             self.xPoints_for_data_plot = np.loadtxt(self.all_files[0], skiprows=lines_to_skip, usecols=(0,))
             self.yPoints_for_data_plot = np.loadtxt(self.all_files[0], skiprows=lines_to_skip, usecols=(8,))
-            
+
             for i in range(self.num_files):
                 if i > 0:
                     self.xPoints_for_data_plot += np.array(np.loadtxt(self.all_files[i], skiprows=lines_to_skip, usecols=(0,)))
@@ -712,11 +712,11 @@ class App():
 
             self.xPoints_avg = np.array(self.xPoints_for_data_plot/self.num_files)
             self.yPoints_avg = np.array(self.yPoints_for_data_plot/self.num_files)
-            
+
             self.plot_data = np.column_stack((self.xPoints_avg,self.yPoints_avg))
             np.savetxt(self.averaged_file.get(), self.plot_data)
         #__________________________________________________________________________________________________
-            #os.chdir(pathlib.Path.cwd())          
+            #os.chdir(pathlib.Path.cwd())
 
         # _____Input/Output File/Folder Buttons______________________________________________
         multiple_input_button = ttk.Checkbutton(self.input_tab,variable=self.yes_folder,command=select_folder,offvalue=0, onvalue=1)
@@ -724,7 +724,7 @@ class App():
 
         csv_file_button = ttk.Button(self.input_tab, text="Select File", command=select_csv_file,style='my.TButton')
         csv_file_button.grid(column=2, row=2, sticky=W,padx=self.padx,pady=self.pady)
-        
+
         csv_folder_button = ttk.Button(self.input_tab, text="Select Folder", command=select_csv_folder,style='my.TButton')
         csv_folder_button.grid(column=2, row=3, sticky=W,padx=self.padx,pady=self.pady)
         csv_folder_button.config(state=DISABLED)  # Unless the multiple file button is checked this will be disabled
@@ -777,7 +777,7 @@ class App():
         original_chance_of_mutation_entry = ttk.Combobox(self.mutation_tab, width=7,textvariable=self.original_chance_of_mutation,values=mut_list, state="readonly")
         original_chance_of_mutation_entry.grid(column=4, row=3, sticky=W)
 
-        mutated_options_drop_list = ttk.Combobox(self.mutation_tab, width=2, textvariable=self.mutated_options,values=[1, 2, 3],state="readonly")
+        mutated_options_drop_list = ttk.Combobox(self.mutation_tab, width=2, textvariable=self.mutated_options,values=[0,1,2],state="readonly")
         mutated_options_drop_list.grid(column=4, row=4, sticky=W)
 
 #___Fitting Parameters Tab____________________________________________________________________________________________
@@ -785,8 +785,8 @@ class App():
         """
         Build fitting parameters tab
         """
-        arr_xes_peaks = ["Number of Peaks"] 
-        self.description_tabs(arr_xes_peaks, self.fitting_param_tab, row=[2]) #tabs start at row=1. Row=2 is for background and number_of_peaks 
+        arr_xes_peaks = ["Number of Peaks"]
+        self.description_tabs(arr_xes_peaks, self.fitting_param_tab, row=[2]) #tabs start at row=1. Row=2 is for background and number_of_peaks
         self.peak_state = 'disabled' #initial state for so_split and path_branching
 
         #Peak type picker:
@@ -800,7 +800,7 @@ class App():
         #Peak Energy Guess Label:
         peak_Energy = ttk.Label(self.fitting_param_tab,text = "Peak Energy",font = self.labelFont)
         peak_Energy.grid(column = 3,row = 6,sticky = W, padx= self.padx,pady= self.pady)
-        
+
         self.peak_Energy_entries = [0] *10
         self.checkbutton_doublets = [0] *10
         self.peakTypes_entries = [0] *10
@@ -812,18 +812,18 @@ class App():
             peak_labels = []
             rows = []
             i=0
-            voigt_for_peak_type = 'Voigt' 
+            voigt_for_peak_type = 'Voigt'
             #values = self.peak_types in self.peakTypes_entries[i] if you want multiple background types
             for row in range(7,7+(2*self.num),2):
                 peak_labels.append("Peak" + str(i+1))
                 rows.append(row)
-                
+
                 self.peakTypes_entries[i] = ttk.Combobox(self.fitting_param_tab, textvariable=self.peaks[i], font=self.entryFont, values= voigt_for_peak_type)
                 self.peakTypes_entries[i].grid(column=2, row=row, sticky=W)
                 #Peak Energy:
                 self.peak_Energy_entries[i] = ttk.Entry(self.fitting_param_tab, textvariable=self.peak_Energy_guesses[i], font=self.entryFont)
                 self.peak_Energy_entries[i].grid(column=3, row=row, sticky=(W, E))
-                
+
                 i+=1
             #destroy any that were leftover
             for k in range(self.num,self.oldNum):
@@ -843,13 +843,13 @@ class App():
         #Nunber of Peaks:
         number_of_peaks_options = [1,2,3,4,5,6,7,8,9,10]
         number_of_peaks_entry = ttk.Combobox(self.fitting_param_tab, textvariable=self.number_of_peaks, font=self.entryFont,values= number_of_peaks_options)
-        number_of_peaks_entry.grid(column=2, row=2, sticky=(W, E)) #on same row as background checkbox 
+        number_of_peaks_entry.grid(column=2, row=2, sticky=(W, E)) #on same row as background checkbox
         number_of_peaks_entry.bind('<<ComboboxSelected>>', updatePeakSelectionRows)
 
         #Backgrounds Checkboxes:
         path_bkgn = ttk.Label(self.fitting_param_tab, text="Background Type:", font=self.labelFont)
         path_bkgn.grid_configure(column=3, row=2, sticky=W, padx=self.padx, pady=self.pady)
-        
+
         global background_types
         self.background_types = [] #make an array of the background types selected
         #-----Linear Background-----
@@ -857,18 +857,18 @@ class App():
         def linear_bkgn():
             global background_types
             global slope_selected
-            if (self.linear_selected % 2) == 0: #state of button is off. Used when button is clicked on then off again. 
+            if (self.linear_selected % 2) == 0: #state of button is off. Used when button is clicked on then off again.
                 self.background_types.remove('Linear')
                 self.linear_selected = 1
             else: #state of button is on
                 self.background_types.append('Linear')
                 self.linear_selected = 2
             return self.linear_selected
-            
+
         checkbutton_doublet = ttk.Checkbutton(self.fitting_param_tab, text="Linear", command=linear_bkgn)
         checkbutton_doublet.grid(column=5, row=2, sticky=W)
         checkbutton_doublet.state(['!alternate'])
-            
+
         #doublet_peak()
         updatePeakSelectionRows(0)
 
