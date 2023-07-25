@@ -35,7 +35,7 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
-
+DS.store
 # DATA and Information #
 ######################
 #/data
@@ -52,7 +52,7 @@ exafs.egg-info/
 
 # Python Related #
 #####################
-__pycache__/
+*/__pycache__/
 *.pyc
 .ipynb_checkpoints
 exafs/bin
@@ -60,6 +60,7 @@ build/
 dist/
 gui/test_feff/
 vscode/
+xes_neo.egg-info/
 # Submodules #
 #####################
 contrib/
