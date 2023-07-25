@@ -197,7 +197,7 @@ class XES_GA:
         for j in range(len(self.x_array)):
 
            # loss = loss + (yTotal[j]*self.x_array[j]**2 - self.y_array[j]* self.x_array[j]**2 )**2
-            loss = loss + (yTotal[j]- self.y_array[j])**2
+            loss = loss + (((yTotal[j]- self.y_array[j])**2)*self.y_array[j])
         # if loss == np.nan:
             # print(individual[0].verbose())
         return loss
