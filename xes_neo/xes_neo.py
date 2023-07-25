@@ -17,6 +17,9 @@ from copy import deepcopy #fixes bug at line 70ish with deepcopy
 Author: Andy Lau
 """
 
+# Setup some default constraints
+MAX = 3.40282e+38
+MIN = 1.17549e-38
 
 class XES_GA:
 
@@ -36,10 +39,10 @@ class XES_GA:
         print("Initializing Variables")
         self.genNum = 0
         self.nChild = 4
-        self.globBestFit = [0,0]
-        self.currBestFit = [0,0]
-        self.bestDiff = 9999e11
-        self.bestBest = 999999999e11
+        self.globBestFit = [0,np.inf]
+        self.currBestFit = [0,np.inf]
+        self.bestDiff = np.inf
+        self.bestBest = np.inf
         self.diffCounter = 0
 
         self.pathDictionary = {}
@@ -319,9 +322,14 @@ class XES_GA:
         self.logger.info("Mutate Times: " + str(self.nmutate))
 
 
-    def mutateIndi(self,indi):
-        """
-        Generate new individual during mutation operator
+    def mutateIndi(self,indi :int) -> Individual:
+        """Mutate the Individual
+
+        Args:
+            indi (int): index of the populations
+
+        Returns:
+            Individual: Mutated Individuals
         """
         if self.mut_opt == 0:
             # Create a new individual with Rechenberg
@@ -337,25 +345,26 @@ class XES_GA:
             n_success = 0
             og_individual = self.generateIndividual()
             # Create a new individual with the same parameters
-            og_pars = copy.copy(self.Populations[indi].get_func()[0].get())
-            og_individual.set_path(0,og_pars)
-            og_score = self.fitness(og_individual,self.xspec)
+            og_pars = copy.copy(self.Populations[indi].get_peaks())
+
+
+            og_individual.setPeaks(og_pars)
+            og_score = self.fitness(og_individual)
 
             new_individual = self.generateIndividual()
             mut_score = self.fitness(new_individual)
 
-            T = - self.bestDiff/(np.log(1-(self.genNum/self.ngen))+ np.nan)
+            T = - self.bestDiff/(np.log(1-(self.genNum/self.ngen)+MIN))
             if mut_score < og_score:
                 n_success = n_success + 1
 
                 newIndi = new_individual
-            elif np.exp(-(mut_score-og_score)/(T+np.nan)) > np.random.uniform():
+            elif np.exp(-(mut_score-og_score)/(T+MIN)) > np.random.uniform():
                 n_success = n_success + 1
                 newIndi = new_individual
             else:
                 newIndi = og_individual
 
-            self.nmutate_success.append(n_success)
             # self.logger.info(f"Metroplis Hasting Success: {nmutate_success}")
         return newIndi
 
@@ -494,18 +503,18 @@ class XES_GA:
 
     def run_verbose_start(self):
         self.logger.info("-----------Inputs File Stats---------------")
-        self.logger.info(f"{bcolors.BOLD}File{bcolors.ENDC}: {self.data_file}")
+        self.logger.info(f"{helper.bcolors.BOLD}File{helper.bcolors.ENDC}: {self.data_file}")
         #self.logger.info(f"{bcolors.BOLD}File Type{bcolors.ENDC}: {self.data_obj._ftype}")
-        self.logger.info(f"{bcolors.BOLD}File{bcolors.ENDC}: {self.output_path}")
-        self.logger.info(f"{bcolors.BOLD}Population{bcolors.ENDC}: {self.npops}")
-        self.logger.info(f"{bcolors.BOLD}Num Gen{bcolors.ENDC}: {self.ngen}")
-        self.logger.info(f"{bcolors.BOLD}Mutation Opt{bcolors.ENDC}: {self.mut_opt}")
+        self.logger.info(f"{helper.bcolors.BOLD}File{helper.bcolors.ENDC}: {self.output_path}")
+        self.logger.info(f"{helper.bcolors.BOLD}Population{helper.bcolors.ENDC}: {self.npops}")
+        self.logger.info(f"{helper.bcolors.BOLD}Num Gen{helper.bcolors.ENDC}: {self.ngen}")
+        self.logger.info(f"{helper.bcolors.BOLD}Mutation Opt{helper.bcolors.ENDC}: {self.mut_opt}")
         self.logger.info("-------------------------------------------")
 
     def run_verbose_end(self):
         self.logger.info("-----------Output Stats---------------")
         # self.logger.info(f"{bcolors.BOLD}Total)
-        self.logger.info(f"{bcolors.BOLD}Total Time(s){bcolors.ENDC}: {round(self.tt,4)}")
+        self.logger.info(f"{helper.bcolors.BOLD}Total Time(s){helper.bcolors.ENDC}: {round(self.tt,4)}")
         self.logger.info("-------------------------------------------")
 
     def run(self):

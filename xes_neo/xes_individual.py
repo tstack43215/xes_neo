@@ -108,7 +108,15 @@ class Individual():
         #print("Params : " + str(params[0]))
         return params[0]
 
-    def get_peak(self,i):
+    def get_peak(self,i:int):
+        """Get specific peaks
+
+        Args:
+            i (int): Index of the peak to get
+
+        Returns:
+            peaks: Peaks object
+        """
         return self.peakArr[i].get()
 
     def get_peaks(self):
@@ -116,6 +124,7 @@ class Individual():
 
     def get_background(self,i):
         return self.bkgnArr[i]
+
     def get_backgrounds(self):
         return self.bkgnArr
 
@@ -125,9 +134,19 @@ class Individual():
         for bkgn in self.bkgnArr:
             bkgn.mutate(chance)
 
-    #forces a given peak to have the given values, returns 0 on success, -1 on failure
     def setPeak(self,i,param_arr):
-        #param array comes in with its last element indicating its type
+        """Forces a given peak to have the given values, returns 0 on success, -1 on failure
+
+        Note: param array comes in with its last element indicating its type
+
+        Args:
+            i (_type_): _description_
+            param_arr (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
+
         peakType = param_arr[len(param_arr)-1]
         #if param_array is voigt, it comes in form [BE,Gauss,Lorentz,Amplitude,'Voigt']
         if peakType.lower() == 'voigt':
@@ -135,6 +154,14 @@ class Individual():
             return 0
         else:
             return -1
+
+    def setPeaks(self,param_arr):
+        """Set a bunch of peaks value
+
+        Args:
+            param_arr (List): list of peaks
+        """
+        self.peakArr = param_arr
 
     def setBkgn(self,i,param_arr):
         bkgnType = param_arr[len(param_arr)-1]
@@ -145,8 +172,7 @@ class Individual():
             self.bkgnArr[i].set_linear(param_arr)
 
     def verbose(self):
-        """
-        Print out the Populations
+        """Print out the populations
         """
         for i in range(self.npaths):
             self.Population[i].verbose()
