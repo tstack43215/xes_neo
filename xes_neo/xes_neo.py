@@ -132,15 +132,23 @@ class XES_GA:
         """
 
         # data = np.genfromtxt(self.data_file,delimiter=',',skip_header=1)
-        self.data_obj = xes_data(self.data_file,1)
+        self.data_obj = xes_data(self.data_file,0)
 
         self.x_slice = self.data_obj.get_x()
         self.y_slice = self.data_obj.get_y()
         self.x_array = self.x_slice
         self.y_array = self.y_slice
 
+        yAvg = 0
+        yTot = 0
+        j=0
+        for i,yVal in enumerate(self.data_obj.get_y()):
+            yTot += yVal
+            j=i
+        yAvg = yTot/(j+1)
+        background_range[1] = yAvg
 
-
+        amp_range[1] = max(self.data_obj.get_y())
         self.pars_range = {
             'Peak Energy': peak_energy_range,
             'Peak Energy Guess': peak_energy_guess,
@@ -549,11 +557,12 @@ class XES_GA:
             f2 = open(self.file_data,"a")
             write = csv.writer(f2)
             bestFit = self.globBestFit[0]
-            for i in range(self.npaths):
-                #write.writerow((bestFit[i][0], bestFit[i][1], bestFit[i][2]))
-                str_pars = bestFit.get_params()
-                write.writerow(str_pars)
+            #write.writerow((bestFit[i][0], bestFit[i][1], bestFit[i][2]))
+            str_pars = bestFit.get_params()
+            write.writerow(str_pars)
             f2.write("#################################\n")
+
+            #print(", ".join(str(i) for i in bestFit.getFit(self.x_array,self.y_array)))
         finally:
             f2.close()
 

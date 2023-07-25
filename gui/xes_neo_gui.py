@@ -278,7 +278,6 @@ class App():
            guesses.append(self.peak_Energy_guesses[i].get())
            inputPeaks.append(self.peaks[i].get())
         
-
         paths = ("\n\n[Paths]\nnPeaks={nPeaks} \nbackground_type = {bkgn_type} \npeak_type = {peak_type} \npeak_Energy_range = {peak_energy_range} \npeak_energy={peak_energy} \nsigma_range = "
                  "{sigma_range} \nfwhm_range = {fwhm_range} \namp_range = {amp_range} \nbackground_range = {background_range} \nslope_range = {slope_range}"
                  .format(nPeaks=int(self.number_of_peaks.get()),
@@ -289,7 +288,7 @@ class App():
                          sigma_range=", ".join(str(i) for i in [self.sigma_min, self.sigma_max, self.sigma_delta]),
                          fwhm_range=", ".join(str(i) for i in [self.fwhm_min, self.fwhm_max, self.fwhm_delta]),
                          amp_range =",".join(str(i) for i in [self.amp_min,self.amp_max,self.amp_delta]),
-                         background_range = ", ".join(str(i) for i in [self.background_min, self.background_max, self.background_delta]),
+                         background_range = ", ".join(str(i) for i in [self.background_min, self.amp_max, self.background_delta]),
                          slope_range = ", ".join(str(i) for i in [self.slope_min, self.slope_max, self.slope_delta])
                          ))
  

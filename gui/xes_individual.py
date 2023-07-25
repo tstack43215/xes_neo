@@ -44,7 +44,6 @@ class Individual():
         for i in range(self.nBackgrounds):
             self.bkgnArr[i] = background(pars_range,backgrounds[i])
         
-        print(self.peakArr)
         if pars_range != '':
             pars_range['Peak Energy'][0],pars_range['Peak Energy'][1] = PeakEnergy1,PeakEnergy2
         
@@ -60,7 +59,6 @@ class Individual():
     #adds all backgrounds and peaks as one y value array
     def getFit(self,x,y):
         yFit = [0]*len(x)
-        print(self.peakArr)
         for i in range(self.nPeaks):
             yFit += self.peakArr[i].peakFunc(x)
         for i in range(self.nBackgrounds):
@@ -70,7 +68,6 @@ class Individual():
 
     def getFitWithComponents(self,x,y):
         yFit = [0]*len(x)
-        print(self.peakArr)
         bkgn_components_arr = []
         peak_components_arr = []
         for i in range(self.nPeaks):
