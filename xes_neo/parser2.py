@@ -4,7 +4,7 @@ Renamed to parser2 because it was overshadowing the stdlib parser when importing
 """
 import os
 import configparser
-from helper import bcolors
+from . import helper
 
 def CheckKey(dict, key_list):
     for i in range(len(key_list)):
@@ -84,7 +84,7 @@ def     read_input_file(input_file,verbose=False):
 
 def print_input_file(file_dict):
     for key,value in file_dict.items():
-        print("[" +bcolors.BOLD + str(key)+ bcolors.ENDC +"]")
+        print("[" +helper.bcolors.BOLD + str(key)+ helper.bcolors.ENDC +"]")
         for inner_key,inner_value in value.items():
             print('---'  +  inner_key + ": " +inner_value)
 

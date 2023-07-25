@@ -7,7 +7,7 @@ parameters, it seems non essential for now
 from tkinter import N
 
 from matplotlib.bezier import get_parallels
-from xes_fit import peak,background
+from .xes_fit import peak,background
 
 class Individual():
     def __init__(self,backgrounds,peaks,pars_range=''):
@@ -23,7 +23,7 @@ class Individual():
         self.nBackgrounds = len(backgrounds)
         self.peakArr = [None]* self.nPeaks
         self.bkgnArr = [None] * self.nBackgrounds
-        
+
         """
         the Binding Energy needs to be personalized
         we take the range, which right now is something like (0,.2), i.e. the allowed variance in BE
@@ -34,19 +34,19 @@ class Individual():
         else:
             self.SVSC_toggle = False
         for i in range(pars_range['npeaks']):
- 
+
             range_key = 'Peak Energy'
             guess_key = 'Peak Energy Guess'
             peak_energy_range = pars_range[range_key]
             PeakEnergy1,PeakEnergy2 =peak_energy_range[0],peak_energy_range[1]
             peak_energy = pars_range[guess_key][i]
             pars_range[range_key][0],pars_range[range_key][1] = [peak_energy_range[0] + peak_energy, peak_energy_range[1] + peak_energy,]
-            
+
             #print("Calculated range is " + str(pars_range[range_key][0]) + " " + str(pars_range[range_key][1]))
             self.peakArr[i] = peak(pars_range,peaks[i])
             if self.SVSC_toggle:
                 self.peakArr[i].SVSC_toggle(self.SVSC_toggle) #activate peak shirley
-            
+
             pars_range[range_key][0],pars_range[range_key][1] = PeakEnergy1,PeakEnergy2
         '''
         except:
@@ -58,11 +58,11 @@ class Individual():
                 exit()
         '''
 
-        
+
         #each index in the peaks/background array is the name of the peak/background type to be used
         for i in range(self.nBackgrounds):
             self.bkgnArr[i] = background(pars_range,backgrounds[i])
-        
+
 
 
     def add_peak(self,peakType):
@@ -70,7 +70,7 @@ class Individual():
     def add_bkgn(self,bkgnType):
         self.bkgnArr.append(background(self.pars_range,bkgnType))
 
-    
+
     #adds all backgrounds and peaks as one y value array
     def getFit(self,x,y):
         yFit = [0]*len(x)
@@ -83,7 +83,7 @@ class Individual():
                 yFit += self.peakArr[i].peakFunc(x)
         for i in range(self.nBackgrounds):
             yFit += self.bkgnArr[i].getY(x,y)
-        
+
         return yFit
 
     def get(self):
@@ -91,7 +91,7 @@ class Individual():
         Get the whole set
         """
         return (self.peakArr + self.bkgnArr)
-    
+
     def get_params(self):
         params = []
         #fetches all the params as independent lists
@@ -110,10 +110,10 @@ class Individual():
 
     def get_peak(self,i):
         return self.peakArr[i].get()
-    
+
     def get_peaks(self):
         return self.peakArr
-    
+
     def get_background(self,i):
         return self.bkgnArr[i]
     def get_backgrounds(self):
@@ -124,7 +124,7 @@ class Individual():
             peak.mutate(chance)
         for bkgn in self.bkgnArr:
             bkgn.mutate(chance)
-    
+
     #forces a given peak to have the given values, returns 0 on success, -1 on failure
     def setPeak(self,i,param_arr):
         #param array comes in with its last element indicating its type
@@ -135,7 +135,7 @@ class Individual():
             return 0
         else:
             return -1
-        
+
     def setBkgn(self,i,param_arr):
         bkgnType = param_arr[len(param_arr)-1]
         #if param_array is voigt, it comes in form [BE,Gauss,Lorentz,Amplitude,'Voigt']

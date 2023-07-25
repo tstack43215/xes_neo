@@ -1,16 +1,16 @@
 import enum
-from helper import *
-from import_lib import *
-from ini_parser import *
+from . import helper
+from .import_lib import *
+from .ini_parser import *
 #from pathObj import OliverPharr
 #from .individual import Individual
-from pathrange import Pathrange_limits  #may be deletable/ built for XAFS
-from nano_neo_data import NanoIndent_Data
+# from .pathrange import Pathrange_limits  #may be deletable/ built for XAFS
+# from .nano_neo_data import NanoIndent_Data
 
 
-from xes_individual import Individual
-from xes_fit import peak,background
-from xes_data import xes_data
+from .xes_individual import Individual
+from .xes_fit import peak,background
+from .xes_data import xes_data
 
 from copy import deepcopy #fixes bug at line 70ish with deepcopy
 """
@@ -250,7 +250,7 @@ class XES_GA:
         # ray.init()
         self.logger.info("---------------------------------------------------------")
         self.logger.info(datetime.datetime.fromtimestamp(self.st).strftime('%Y-%m-%d %H:%M:%S'))
-        self.logger.info(f"{bcolors.BOLD}Gen: {bcolors.ENDC}{self.genNum+1}")
+        self.logger.info(f"{helper.bcolors.BOLD}Gen: {helper.bcolors.ENDC}{self.genNum+1}")
 
         self.genNum += 1
 
@@ -263,9 +263,9 @@ class XES_GA:
 
         with np.printoptions(precision=5, suppress=True):
             self.logger.info("Different from last best fit: " +str(self.bestDiff))
-            self.logger.info(bcolors.BOLD + "Best fit: " + bcolors.OKBLUE + str(self.currBestFit[1]) + bcolors.ENDC)
+            self.logger.info(helper.bcolors.BOLD + "Best fit: " + helper.bcolors.OKBLUE + str(self.currBestFit[1]) + helper.bcolors.ENDC)
             self.logger.info("Best fit combination:\n" + str((self.sorted_population[0][0].get_params())))
-            self.logger.info(bcolors.BOLD + "History Best: " + bcolors.OKBLUE + str(self.globBestFit[1]) +bcolors.ENDC)
+            self.logger.info(helper.bcolors.BOLD + "History Best: " + helper.bcolors.OKBLUE + str(self.globBestFit[1]) + helper.bcolors.ENDC)
             self.logger.info("NanCounter: " + str(self.nan_counter))
             self.logger.info("History Best Indi:\n" + str((self.globBestFit[0].get_params())))
 
@@ -332,16 +332,17 @@ class XES_GA:
             self.Populations[indi].mutate_(self.mut_chance)
             newIndi = self.Populations[indi]
             # Mutate every gene in the Individuals
+
         if self.mut_opt == 2:
             n_success = 0
             og_individual = self.generateIndividual()
             # Create a new individual with the same parameters
             og_pars = copy.copy(self.Populations[indi].get_func()[0].get())
             og_individual.set_path(0,og_pars)
-            og_score = fitness.fitness((og_individual,self.xspec))
+            og_score = self.fitness(og_individual,self.xspec)
 
             new_individual = self.generateIndividual()
-            mut_score = fitness.fitness((new_individual,self.xspec))
+            mut_score = self.fitness(new_individual)
 
             T = - self.bestDiff/(np.log(1-(self.genNum/self.ngen))+ np.nan)
             if mut_score < og_score:

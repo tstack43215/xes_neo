@@ -1,4 +1,4 @@
-from parser2 import *
+from .parser2 import *
 import argparse, os, sys
 
 parser = argparse.ArgumentParser()
