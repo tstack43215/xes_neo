@@ -155,7 +155,7 @@ class App():
         self.sigma_min,self.sigma_max,self.sigma_delta = 0,4,.001
         self.fwhm_min,self.fwhm_max,self.fwhm_delta = 0,2.5,.001
         self.amp_min,self.amp_max,self.amp_delta = 0,5000, 0.05
-        self.background_min,self.background_max,self.background_delta = 0,20,0.001
+        self.background_min,self.background_max,self.background_delta = 0,1.25,0.001
         self.slope_min,self.slope_max,self.slope_delta = 0,0.01, 0.00001 #Allows for a slope to be applied to the background, currently hard set to 0
         
         # Plot Tab (column 5)________________________________________________________________________
@@ -1195,7 +1195,7 @@ class App():
 
             os.chdir(pathlib.Path.cwd().joinpath('gui'))
         def calculate_and_plot():
-            self.background_types = ['linear']
+            self.background_types = ['Linear']
             params = {
                 'base': pathlib.Path.cwd().parent,
                 'file': self.csv_generate_from,
