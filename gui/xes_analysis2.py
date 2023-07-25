@@ -367,17 +367,17 @@ class xes_analysis():
             ax.plot(self.x,self.y_model,'r--',linewidth=1.2,label='Fit')
             if(len(self.peak_components)>1):
                 for i,peak in enumerate(self.peak_components):
-                    ax.plot(self.x,peak,'g--',linewidth = 1,label=('Peak' + str(i)))
+                    ax.plot(self.x,peak,'--',linewidth = 1,label=('Peak ' + str(i)))
             if(len(self.bkgn_components)>1):
                 for i,bkgn in enumerate(self.bkgn_components):
-                    ax.plot(self.x,bkgn,'b--',linewidth = 1,label=('Bkgn' + str(i)))
+                    ax.plot(self.x,bkgn,'b--',linewidth = 1,label=('Bkgn ' + str(i)))
 
             bkgns = self.best_ind.get_backgrounds()
             print(bkgns)
             self.background = [] * len(self.x)
             for i in range(len(bkgns)):
                 self.background = bkgns[i].getY(self.x,self.y)
-            ax.plot(self.x,self.background,'g-',linewidth =1, label='background')
+            ax.plot(self.x,self.background,'c-',linewidth =1, label='background')
             # ax.title(str('Fit'))
             # ax.xlabel(str('Energy (eV)'))
             # ax.ylabel(str('Counts/s'))
