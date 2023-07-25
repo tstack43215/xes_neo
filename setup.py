@@ -17,14 +17,14 @@ def long_description():
 
 
 setup(
-    name='nano_indent',
+    name='xes_neo',
     version=__version__,
     packages=find_packages(),
 
     author=__author__,
     author_email=__email__,
-    keywords=['GA', 'Nano_Indent','analysis'],
-    description='Nano Indent using GA',
+    keywords=['GA', 'XES','analysis'],
+    description='XES Analysis using GA',
     long_description=long_description(),
     url='https://github.com/tstack43215/xes_neo.git',
     download_url='https://github.com/tstack43215/xes_neo.git/tarball/master',

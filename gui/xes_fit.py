@@ -205,7 +205,7 @@ class background():
                 self.k = -1
         elif self.bkgnType == 'Slope':
             self.bkgn = self.slope_bkgn
-        elif self.bkgnType == 'Linear':
+        elif self.bkgnType == 'linear':
             self.bkgn = self.linear_background
             try:
                 self.backgroundRange = np.arange(paramRange['Background'][0],paramRange['Background'][1],paramRange['Background'][2])
