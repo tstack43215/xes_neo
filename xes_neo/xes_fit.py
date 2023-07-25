@@ -228,7 +228,7 @@ class background():
                 self.k = np.random.choice(k_range)
             except:
                 self.k = -1
-        elif self.bkgnType == 'Linear':
+        elif self.bkgnType == 'linear':
             self.bkgn = self.linear_background
             try:
                 self.backgroundRange = np.arange(paramRange['Background'][0],paramRange['Background'][1],paramRange['Background'][2])
