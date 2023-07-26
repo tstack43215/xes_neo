@@ -150,7 +150,7 @@ class XES_GA:
         yAvg = 0
         yTot = 0
         j=0
-        for i,yVal in enumerate(self.data_obj.get_y()):
+        for i,yVal in enumerate(self.data_obj.get_y()[-10:]): #[-10:] gets last 10 items in array.
             yTot += yVal
             j=i
         yAvg = yTot/(j+1)
@@ -206,7 +206,7 @@ class XES_GA:
 
            # loss = loss + (yTotal[j]*self.x_array[j]**2 - self.y_array[j]* self.x_array[j]**2 )**2
             #loss = loss + (((yTotal[j]- self.y_array[j])**2)*self.y_array[j] 
-            loss = loss + (((yTotal[j]- self.y_array[j])**2))
+            loss = loss + (((yTotal[j]- self.y_array[j])**2))*np.sqrt(self.y_array[j])
         # if loss == np.nan:
             # print(individual[0].verbose())
         return loss
