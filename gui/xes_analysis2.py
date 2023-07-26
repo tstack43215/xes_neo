@@ -367,11 +367,11 @@ class xes_analysis():
             plt.legend()
         else:
             ax  = fig_gui.add_subplot(111)
-            ax.plot(self.x,self.y,'b.',linewidth=1,label='Data')
+            ax.plot(self.x,self.y,'b.',markersize=5,linewidth=1,label='Data')
             ax.plot(self.x,self.y_model,'r--',linewidth=1.2,label='Fit')
             if(len(self.peak_components)>1):
                 for i,peak in enumerate(self.peak_components):
-                    ax.plot(self.x,peak,'--',linewidth = 1,label=('Peak ' + str(i)))
+                    ax.plot(self.x,peak,'--',markersize=2,linewidth = 1,label=('Peak ' + str(i)))
             if(len(self.bkgn_components)>1):
                 for i,bkgn in enumerate(self.bkgn_components):
                     ax.plot(self.x,bkgn,'b--',linewidth = 1,label=('Bkgn ' + str(i)))
