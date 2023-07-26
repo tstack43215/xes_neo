@@ -163,7 +163,25 @@ class peak():
         print(xRange)
         print(stepSize)
         '''
-        z = np.arange(-xRange, xRange+stepSize,.05)
+        energy_step = x[1] - x[0]
+        decimal_places = 2
+        step = round(energy_step, decimal_places)
+        energy_min = min(x)
+        energy_max = max(x)
+        lorentzian_range =  len(x)
+        #print(lorentzian_range)
+        #print(len(x))
+
+        #Check whether the energy range is odd or even because it affects the lorentzian x-value array
+
+        if (lorentzian_range % 0.002 == 0):
+            lorentzian_x_min = -(lorentzian_range/2)
+            lorentzian_x_max = (lorentzian_range/2) + step  
+        else:
+            lorentzian_x_min = -(lorentzian_range/2) + (0.5*step)
+            lorentzian_x_max = (lorentzian_range/2) + (1.5*step)
+
+        z = np.arange(lorentzian_x_min, lorentzian_x_max, step) 
         lorentzian = (self.lorentz / (2 * np.pi)) / (np.power(z, 2) + np.power(self.lorentz / 2, 2))
         
         # Perform the convolution using the Fourier transform
