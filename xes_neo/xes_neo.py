@@ -24,17 +24,17 @@ MIN = 1.17549e-38
 class XES_GA:
 
     def initialize_params(self,verbose = False):
+        """Initalize the params
+
+        Args:
+            verbose (bool, optional): verbosity. Defaults to False.
         """
-        Initialize Parameters
-        """
-        # print("Initialize Parameters")
         print("Initializing Params")
         self.intervalK = 0.05
         self.tol = np.finfo(np.float64).resolution
 
     def initialize_variable(self):
-        """
-        Initalize variables
+        """Initialize variables
         """
         print("Initializing Variables")
         self.genNum = 0
@@ -70,11 +70,10 @@ class XES_GA:
         self.time = False
         self.tt = 0
 
-    def initialize_file_path(self,i=0):
+    def initialize_file_path(self):
+        """Initalize file paths for output and log files
         """
-        Initalize file paths for each of the file first
-        """
-        print("initializing file paths")
+        print("Initializing file paths")
         self.base = os.getcwd()
         self.output_path = os.path.join(self.base,output_file)
         self.check_output_file(self.output_path)
@@ -97,9 +96,12 @@ class XES_GA:
         self.logger.setLevel(logging.INFO)
         self.logger.info(banner())
 
-    def check_if_exists(self,path_file):
-        """
-        Check if the directory exists
+    @staticmethod
+    def check_if_exists(path_file):
+        """Check if the file exists, if it does, delete it
+
+        Args:
+            path_file (str): File path
         """
         if os.path.exists(path_file):
             os.remove(path_file)
@@ -111,8 +113,8 @@ class XES_GA:
         """
         check if the output file for each of the file
         """
-        file_base= os.path.splitext(file)[0]
-        self.check_if_exists(file)
+        file_base = os.path.splitext(file)[0]
+        XES_GA.check_if_exists(file)
         self.file = file
 
         self.file_initial = open(self.output_path,"a+")
@@ -120,19 +122,22 @@ class XES_GA:
         self.file_initial.close()
 
         file_data = os.path.splitext(file)[0] + '_data.csv'
-        self.check_if_exists(file_data)
+        XES_GA.check_if_exists(file_data)
         self.file_data = file_data
 
 
     def initialize_range(self,i=0,BestIndi=None):
-        print("initializing ranges")
         """
         Initalize range
 
-        To Do list:
-            Initalize range will be difference for each paths depend if the run are
-            in series, therefore the ranges will self-adjust
+        # TODO: Initalize range will be difference for each paths depend if the run are
+        # in series, therefore the ranges will self-adjust
+
+        Args:
+            i (int, optional): _description_. Defaults to 0.
+            BestIndi (_type_, optional): _description_. Defaults to None.
         """
+        self.logger.info("Initializing ranges")
 
         # data = np.genfromtxt(self.data_file,delimiter=',',skip_header=1)
         self.data_obj = xes_data(self.data_file,0)
@@ -165,19 +170,12 @@ class XES_GA:
 
         self.backgrounds = background_type
 
-    ''' Dont' think it's neccesary, we'll see
-    def create_range(self,value,percentage,dt,prec): #-------Where is this called?--------
-        """
-        Create delta to calculate the ranges
-        """
-        minus = round(value - percentage*value,prec)
-        plus = round(value + percentage*value,prec)
-        range = np.arange(minus,plus+dt,dt)
-        return range
-    '''
+
     def generateIndividual(self):
-        """
-        Generate singular individual
+        """Generate single individual
+
+        Returns:
+            Individual: Individual
         """
 
         ind = Individual(self.backgrounds,peak_type,self.pars_range)
@@ -203,7 +201,6 @@ class XES_GA:
         Individual = indObj
         yTotal = np.zeros(len(self.x_slice))
 
-
         yTotal = Individual.getFit(self.x_array,self.y_array)
         for j in range(len(self.x_array)):
 
@@ -214,11 +211,12 @@ class XES_GA:
             # print(individual[0].verbose())
         return loss
 
-    def eval_Population(self):
-        """
-        Evalulate populations
-        """
+    def eval_Population(self)-> list:
+        """Evaluate Populations
 
+        Returns:
+            list: List of score
+        """
         score = []
         populationPerf = {}
         self.nan_counter = 0
@@ -246,24 +244,20 @@ class XES_GA:
 
 
     def next_generation(self):
-        """
-        Calculate next generations
-
+        """Calculate next generations
         """
         self.st = time.time()
-        # ray.init()
         self.logger.info("---------------------------------------------------------")
         self.logger.info(datetime.datetime.fromtimestamp(self.st).strftime('%Y-%m-%d %H:%M:%S'))
         self.logger.info(f"{helper.bcolors.BOLD}Gen: {helper.bcolors.ENDC}{self.genNum+1}")
 
         self.genNum += 1
 
-        # Evaluate Fittness
+        # Evaluate Fitness
         score = self.eval_Population()
         self.bestDiff = abs(self.globBestFit[1]-self.currBestFit[1])
         if self.currBestFit[1] < self.globBestFit[1]:
             self.globBestFit = self.currBestFit
-
 
         with np.printoptions(precision=5, suppress=True):
             self.logger.info("Different from last best fit: " +str(self.bestDiff))
@@ -281,7 +275,6 @@ class XES_GA:
         self.mutatePopulation()
         self.createChildren()
 
-
         self.et = timecall()
         self.tdiff = self.et - self.st
         self.tt = self.tt + self.tdiff
@@ -293,9 +286,6 @@ class XES_GA:
         # 0 = original: generated a new versions:
         # 1 = mutated every genes in the total populations
         # 2 = mutated genes inside population based on secondary probability
-
-        # TODO:
-            options 2 and 3 needs to reimplmented
         """
         self.nmutate = 0
 
@@ -312,8 +302,6 @@ class XES_GA:
                 elif (abs(self.diffCounter) / float(self.genNum)) < 0.2:
                     self.mut_chance -= 0.5
                     self.mut_chance = abs(self.mut_chance)
-
-
 
         for i in range(self.npops):
             if random.random()*100 < self.mut_chance:
@@ -366,7 +354,6 @@ class XES_GA:
             else:
                 newIndi = og_individual
 
-            # self.logger.info(f"Metroplis Hasting Success: {nmutate_success}")
         return newIndi
 
     def selectFromPopulation(self):
@@ -379,35 +366,17 @@ class XES_GA:
         for i in range(select_val):
             self.parents.append(self.sorted_population[i][0])
 
-    def crossover(self,individual1, individual2):
+    def crossover(self,individual1: Individual, individual2: Individual) -> Individual:
+        """Crossover between two individuals, uniform crossover
+
+        Args:
+            individual1 (Individual): First Individual
+            individual2 (Individual): Second Indivudal
+
+        Returns:
+            Individual: crossovered individual
         """
-        Uniform Cross-Over, 50% percentage chance
-        """
-        """
-        OLD
 
-        child = self.generateIndividual()
-
-        for i in range(self.npaths):
-            individual1_path = individual1.get_path(i)
-            individual2_path = individual2.get_path(i)
-
-            temp_path = []
-            for j in range(3):
-                if np.random.randint(0,2) == True:
-                    temp_path.append(individual1_path[j])
-                else:
-                    temp_path.append(individual2_path[j])
-
-            child.set_path(i,temp_path[0],temp_path[1],temp_path[2])
-
-        return child
-        """
-        '''
-        print("Parents:")
-        print(individual1.get_params())
-        print(individual2.get_params())
-        '''
         child = self.generateIndividual()
 
         individual1_path = individual1.get_params()
@@ -496,9 +465,6 @@ class XES_GA:
         for i in range(self.n_recover):
             self.nextPopulation.append(self.generateIndividual())
 
-        # for i in range(self.nan_counter):
-        #     self.nextPopulation.append(self.generateIndividual())
-
         random.shuffle(self.nextPopulation)
         self.Populations = self.nextPopulation
 
@@ -506,6 +472,9 @@ class XES_GA:
         self.logger.info("-----------Inputs File Stats---------------")
         self.logger.info(f"{helper.bcolors.BOLD}File{helper.bcolors.ENDC}: {self.data_file}")
         #self.logger.info(f"{bcolors.BOLD}File Type{bcolors.ENDC}: {self.data_obj._ftype}")
+        self.logger.info(f"{helper.bcolors.BOLD}Fits{helper.bcolors.ENDC}: {peak_type}")
+        # self.logger.info(f"{helper.bcolors.BOLD}Peak Energy Range{helper.bcolors.ENDC}: {self.pars_range}")
+        self.logger.info(f"{helper.bcolors.BOLD}Backgrounds{helper.bcolors.ENDC}: {background_type}")
         self.logger.info(f"{helper.bcolors.BOLD}File{helper.bcolors.ENDC}: {self.output_path}")
         self.logger.info(f"{helper.bcolors.BOLD}Population{helper.bcolors.ENDC}: {self.npops}")
         self.logger.info(f"{helper.bcolors.BOLD}Num Gen{helper.bcolors.ENDC}: {self.ngen}")
@@ -557,15 +526,11 @@ class XES_GA:
         """
         Output generations result into two files
         """
-        try:
-            f1 = open(self.file,"a")
+        with open(self.output_path,"a") as f1:
             f1.write(str(self.genNum) + "," + str(self.tdiff) + "," +
                 str(self.currBestFit[1]) + "," + str(self.currBestFit[0].get_params()) +")," +
                 str(self.globBestFit[1]) + "," + str(self.globBestFit[0].get_params()) +"\n")
-        finally:
-            f1.close()
-        try:
-            f2 = open(self.file_data,"a")
+        with open(self.file_data,"a") as f2:
             write = csv.writer(f2)
             bestFit = self.globBestFit[0]
             #write.writerow((bestFit[i][0], bestFit[i][1], bestFit[i][2]))
@@ -573,9 +538,6 @@ class XES_GA:
             write.writerow(str_pars)
             f2.write("#################################\n")
 
-            #print(", ".join(str(i) for i in bestFit.getFit(self.x_array,self.y_array)))
-        finally:
-            f2.close()
 
     def __init__(self):
         """
@@ -592,7 +554,7 @@ class XES_GA:
         self.initialize_range()
         # Generate first generation
         self.generateFirstGen()
-
+        # Actually run
         self.run()
 
 def main():

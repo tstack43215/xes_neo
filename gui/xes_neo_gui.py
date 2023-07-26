@@ -43,6 +43,11 @@ import multiprocessing as mp
 from xes_plot import Data_plot, Analysis_plot
 #import preprocess_data
 import xes_data as data
+import platform
+
+def get_platform():
+    os_name = platform.system()
+    return os_name
 
 
 class App():
@@ -63,6 +68,9 @@ class App():
         self.root.resizable(True, True)
         self.padx = 5
         self.pady = 3
+
+        self.os = get_platform()
+
 
         # Specify standard font
         self.entryFont = Font(family='TkTextFont', size=11)
@@ -493,7 +501,10 @@ class App():
             name = self.generate_ini()
             self.stop_term()
             #command = 'python ../xes_neo/xes_neo.py -i ' + f'"{name.absolute().as_posix()}"'
-            command = 'exec xes_neo -i '+ f'"{name.absolute().as_posix()}"'
+            if self.os != 'Windows':
+                command = 'exec xes_neo -i '+ f'"{name.absolute().as_posix()}"'
+            else:
+                raise NotImplementedError('Windows is not supported yet')
             print(command)
             self.proc = subprocess.Popen(''.join(command), shell=True)
             self.proc_list.append(self.proc)
