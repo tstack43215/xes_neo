@@ -261,8 +261,9 @@ class background():
 
     def mutate_background_val(self,chance):
         if random.random()*100 < chance:
+        	print(self.background)
             self.background = np.random.choice(self.backgroundRange)
-
+			print(self.background)
 
 
     #Make sure to add in each background here 
