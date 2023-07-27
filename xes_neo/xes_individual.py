@@ -134,17 +134,17 @@ class Individual():
         for bkgn in self.bkgnArr:
             bkgn.mutate(chance)
 
-    def setPeak(self,i,param_arr):
+    def setPeak(self,i,param_arr) -> int:
         """Forces a given peak to have the given values, returns 0 on success, -1 on failure
 
         Note: param array comes in with its last element indicating its type
 
         Args:
             i (_type_): _description_
-            param_arr (_type_): _description_
+            param_arr (dicts): List of parameters
 
         Returns:
-            _type_: _description_
+            int: Return code
         """
 
         peakType = param_arr[len(param_arr)-1]

@@ -167,7 +167,7 @@ class XES_GA:
             'Slope' : slope_range,
             'npeaks' : npaths
         }
-
+        self.peak_type = peak_type
         self.backgrounds = background_type
 
 
@@ -178,7 +178,7 @@ class XES_GA:
             Individual: Individual
         """
 
-        ind = Individual(self.backgrounds,peak_type,self.pars_range)
+        ind = Individual(self.backgrounds,self.peak_type,self.pars_range)
         return ind
 
     def generateFirstGen(self):
@@ -318,7 +318,24 @@ class XES_GA:
 
         self.logger.info("Mutate Times: " + str(self.nmutate))
 
+    def mutateIndi_DE(self,mutateIndividuals:list,F:float) -> Individual:
+        """
+        Mutate the individuals using DE mutation
 
+        Args:
+            mutated_individuals (list): Input list of individuals
+            F (float): Mutation Factors
+        """
+        length = len(mutateIndividuals[0])
+        assert all(len(lst) == length for lst in mutateIndividuals)
+
+        x_list = np.array(mutateIndividuals[0].get())[0]
+        y_list = np.array(mutateIndividuals[1].get())[0]
+        z_list = np.array(mutateIndividuals[2].get())[0]
+
+        new_Pars = x_list + F * (y_list - z_list)
+
+        temp_individual = self.generateIndividual()
     def mutateIndi(self,indi :int) -> Individual:
         """Mutate the Individual
 
