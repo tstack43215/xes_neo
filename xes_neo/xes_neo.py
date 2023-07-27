@@ -205,7 +205,7 @@ class XES_GA:
         for j in range(len(self.x_array)):
 
            # loss = loss + (yTotal[j]*self.x_array[j]**2 - self.y_array[j]* self.x_array[j]**2 )**2
-            #loss = loss + (((yTotal[j]- self.y_array[j])**2)*self.y_array[j] 
+            #loss = loss + (((yTotal[j]- self.y_array[j])**2)*self.y_array[j]
             loss = loss + (((yTotal[j]- self.y_array[j])**2))*np.sqrt(self.y_array[j])
         # if loss == np.nan:
             # print(individual[0].verbose())
@@ -286,22 +286,30 @@ class XES_GA:
         # 0 = original: generated a new versions:
         # 1 = mutated every genes in the total populations
         # 2 = mutated genes inside population based on secondary probability
+        # 3 = Differntial Evolution
         """
         self.nmutate = 0
 
-        if self.mut_opt  == 0:
+        "DE mutation"
+        if self.mut_opt == 3:
+            self.mutated_Populations = []
+            for i in range(self.npops):
+                candidates = [candidate for candidate in range(self.npops) if candidate != i]
+                a,b,c = np.random.choice(candidates,3,replace=False)
+
+                # self.mutated_Populations.append(self.mutateIndi(i))
+        else:
             # Rechenberg mutation
-            if self.genNum > 20:
-                if self.bestDiff < 0.1:
-                    self.diffCounter += 1
-                else:
-                    self.diffCounter -= 1
-                if (abs(self.diffCounter)/ float(self.genNum)) > 0.2:
-                    self.mut_chance += 0.5
-                    self.mut_chance = abs(self.mut_chance)
-                elif (abs(self.diffCounter) / float(self.genNum)) < 0.2:
-                    self.mut_chance -= 0.5
-                    self.mut_chance = abs(self.mut_chance)
+            if self.bestDiff < 0.1:
+                self.diffCounter += 1
+            else:
+                self.diffCounter -= 1
+            if (abs(self.diffCounter)/ float(self.genNum)) > 0.2:
+                self.mut_chance += 0.5
+                self.mut_chance = abs(self.mut_chance)
+            elif (abs(self.diffCounter) / float(self.genNum)) < 0.2:
+                self.mut_chance -= 0.5
+                self.mut_chance = abs(self.mut_chance)
 
         for i in range(self.npops):
             if random.random()*100 < self.mut_chance:
