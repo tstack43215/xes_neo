@@ -44,6 +44,7 @@ from xes_plot import Data_plot, Analysis_plot
 #import preprocess_data
 import xes_data as data
 import platform
+import xes_analysis2
 
 def get_platform():
     os_name = platform.system()
@@ -1191,8 +1192,8 @@ class App():
         arr_col_0 = ['h_f', 'm', 'A', 'Elastic modulus (GPa)', 'Reduced Modulus', 'Stiffness (S)', 'Hardness, H (MPa)',
                      'Max Load (un)', 'Max Depth (nm)']
                      '''
-        arr_col_0 = ['BE','Sigma','Lorentz','Amp','K/A','ChiSqr']
-        self.description_tabs(arr_col_0, self.analysis_tab, sticky='W', row=(1, 2, 3, 4, 5, 6))
+        arr_col_0 = ['Sigma','Lorentz','Amp','ChiSqr', 'Peak 1', 'Peak 2', 'Peak 3']
+        self.description_tabs(arr_col_0, self.analysis_tab, sticky='W', row=(1, 2, 3, 4, 5, 6, 7))
 
         def select_analysis_folder():
             os.chdir(pathlib.Path.cwd().parent)  # change the working directory from gui to nano-indent
@@ -1205,6 +1206,7 @@ class App():
                 self.analysis_dir.set(folder_name)
 
             os.chdir(pathlib.Path.cwd().joinpath('gui'))
+
         def calculate_and_plot():
             self.background_types = ['Linear']
             params = {
@@ -1218,68 +1220,74 @@ class App():
             }
             params = self.analysis_obj.initial_parameters(self.analysis_dir,params,title='Fit')
 
+        def export_analysis_parameters():
+            analysis_params = xes_analysis2.xes_analysis.get_params(self)
+            return analysis_params
+
         """
         TODO:
         read in output file and get the relevant values to put in the boxes
         """
         self.analysis_obj = Analysis_plot(self.analysis_tab)
 
-        analysis_hf = StringVar(self.analysis_tab, 0.0)
-        analysis_m = StringVar(self.analysis_tab, 0.0)
-        analysis_A = StringVar(self.analysis_tab, 0.0)
-        analysis_elastic = StringVar(self.analysis_tab, 0.0)
-        analysis_RedMod = StringVar(self.analysis_tab, 0.0)
-        analysis_Stiff = StringVar(self.analysis_tab, 0.0)
-        analysis_Hardness = StringVar(self.analysis_tab, 0.0)
-        analysis_MaxL = StringVar(self.analysis_tab, 0.0)
-        analysis_MaxD = StringVar(self.analysis_tab, 0.0)
+        analysis_sigma = StringVar(self.analysis_tab, 0.0)
+        analysis_lorentzian = StringVar(self.analysis_tab, 0.0)
+        analysis_amp = StringVar(self.analysis_tab, 0.0)
+        analysis_chisqr = StringVar(self.analysis_tab, 0.0)
+        analysis_peak1 = StringVar(self.analysis_tab, 0.0)
+        analysis_peak2 = StringVar(self.analysis_tab, 0.0)
+        analysis_peak3 = StringVar(self.analysis_tab, 0.0)
+        analysis_peak4 = StringVar(self.analysis_tab, 0.0)
+        analysis_peak5 = StringVar(self.analysis_tab, 0.0)
 
         # For now put in placeholders
-        analysis_button = ttk.Button(self.analysis_tab, text="Select Folder",
-                                     command=select_analysis_folder)  # Add command to export data
+        # Select Folder Button
+        analysis_button = ttk.Button(self.analysis_tab, text="Select Folder",command=select_analysis_folder)  # Add command to export data
         analysis_button.grid(column=0, row=0, sticky=(W, E), padx=self.padx, pady=self.pady, columnspan=2)
 
-        entry_hf_best = ttk.Label(self.analysis_tab, textvariable=analysis_hf, font=self.entryFont, borderwidth=2,
+        # Entries___________________________________________________________________________________________
+        entry_sigma_best = ttk.Label(self.analysis_tab, textvariable=analysis_sigma, font=self.entryFont, borderwidth=2,
                                   relief="groove", background='#a9a9a9')
-        entry_hf_best.grid(column=1, row=1, sticky=(W, E), padx=self.padx)
+        entry_sigma_best.grid(column=1, row=1, sticky=(W, E), padx=self.padx)
 
-        entry_m_best = ttk.Label(self.analysis_tab, textvariable=analysis_m, font=self.entryFont, borderwidth=2,
+        entry_lorentzian_best = ttk.Label(self.analysis_tab, textvariable=analysis_lorentzian, font=self.entryFont, borderwidth=2,
                                  relief="groove", background='#a9a9a9')
-        entry_m_best.grid(column=1, row=2, sticky=(W, E), padx=self.padx)
+        entry_lorentzian_best.grid(column=1, row=2, sticky=(W, E), padx=self.padx)
 
-        entry_a_best = ttk.Label(self.analysis_tab, textvariable=analysis_A, font=self.entryFont, borderwidth=2,
+        entry_amp_best = ttk.Label(self.analysis_tab, textvariable=analysis_amp, font=self.entryFont, borderwidth=2,
                                  relief="groove", background='#a9a9a9')
-        entry_a_best.grid(column=1, row=3, sticky=(W, E), padx=self.padx)
+        entry_amp_best.grid(column=1, row=3, sticky=(W, E), padx=self.padx)
 
-        entry_modulus = ttk.Label(self.analysis_tab, textvariable=analysis_elastic, font=self.entryFont, borderwidth=2,
+        entry_chisqr_best = ttk.Label(self.analysis_tab, textvariable=analysis_chisqr, font=self.entryFont, borderwidth=2,
                                   relief="groove", background='#a9a9a9')
-        entry_modulus.grid(column=1, row=4, sticky=(W, E), padx=self.padx)
+        entry_chisqr_best.grid(column=1, row=4, sticky=(W, E), padx=self.padx)
 
-        entry_red_modulus = ttk.Label(self.analysis_tab, textvariable=analysis_RedMod, font=self.entryFont,
-                                      borderwidth=2,
+        entry_peak1 = ttk.Label(self.analysis_tab, textvariable=analysis_peak1, font=self.entryFont,borderwidth=2,
                                       relief="groove", background='#a9a9a9')
-        entry_red_modulus.grid(column=1, row=5, sticky=(W, E), padx=self.padx)
+        entry_peak1.grid(column=1, row=5, sticky=(W, E), padx=self.padx)
 
-        entry_stiff = ttk.Label(self.analysis_tab, textvariable=analysis_Stiff, font=self.entryFont, borderwidth=2,
+        entry_peak2 = ttk.Label(self.analysis_tab, textvariable=analysis_peak2, font=self.entryFont, borderwidth=2,
                                 relief="groove", background='#a9a9a9')
-        entry_stiff.grid(column=1, row=6, sticky=(W, E), padx=self.padx)
+        entry_peak2.grid(column=1, row=6, sticky=(W, E), padx=self.padx)
 
-        entry_hard = ttk.Label(self.analysis_tab, textvariable=analysis_Hardness, font=self.entryFont, borderwidth=2,
+        entry_peak3 = ttk.Label(self.analysis_tab, textvariable=analysis_peak3, font=self.entryFont, borderwidth=2,
                                relief="groove", background='#a9a9a9')
-        entry_hard.grid(column=1, row=7, sticky=(W, E), padx=self.padx)
+        entry_peak3.grid(column=1, row=7, sticky=(W, E), padx=self.padx)
 
-        entry_max_load = ttk.Label(self.analysis_tab, textvariable=analysis_MaxL, font=self.entryFont, borderwidth=2,
+        entry_peak4 = ttk.Label(self.analysis_tab, textvariable=analysis_peak4, font=self.entryFont, borderwidth=2,
                                    relief="groove", background='#a9a9a9')
-        entry_max_load.grid(column=1, row=8, sticky=(W, E), padx=self.padx)
+        entry_peak4.grid(column=1, row=8, sticky=(W, E), padx=self.padx)
 
-        entry_max_depth = ttk.Label(self.analysis_tab, textvariable=analysis_MaxD, font=self.entryFont, borderwidth=2,
+        entry_peak5 = ttk.Label(self.analysis_tab, textvariable=analysis_peak5, font=self.entryFont, borderwidth=2,
                                     relief="groove", background='#a9a9a9')
-        entry_max_depth.grid(column=1, row=9, sticky=(W, E), padx=self.padx)
-        button_plot = ttk.Button(self.analysis_tab,
-                                 text="Plot Best Fit",
-                                 command=calculate_and_plot)  # Add command to plot data using postprocessing
+        entry_peak5.grid(column=1, row=9, sticky=(W, E), padx=self.padx)
+
+        # Plot Best Fit Button
+        button_plot = ttk.Button(self.analysis_tab,text="Plot Best Fit",command=calculate_and_plot)  # Add command to plot data using postprocessing
         button_plot.grid(column=0, row=10, sticky=(W, E), padx=self.padx, pady=self.pady, columnspan=2)
-        button_export = ttk.Button(self.analysis_tab, text="Export Values")  # Add command to export data
+
+        # Export Values Button
+        button_export = ttk.Button(self.analysis_tab, text="Export Values",command=export_analysis_parameters)  # Add command to export data
         button_export.grid(column=0, row=11, sticky=(W, E), padx=self.padx, pady=self.pady, columnspan=2)
 
         self.analysis_tab.columnconfigure(3, weight=1)

@@ -393,4 +393,5 @@ class xes_analysis():
             fig_gui.tight_layout()
    
     def get_params(self):
-        return self.params
+        parameters = self.bestFit.get_params()
+        return self.params, parameters
