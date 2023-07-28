@@ -71,7 +71,7 @@ class Individual():
         bkgn_components_arr = []
         peak_components_arr = []
         for i in range(self.nPeaks):
-            peakComp =  self.peakArr[i].peakFunc(x)
+            peakComp =  self.peakArr[i].getY(x)
             yFit += peakComp
             peak_components_arr.append(peakComp)
         for i in range(self.nBackgrounds):

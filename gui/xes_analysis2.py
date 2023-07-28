@@ -386,12 +386,25 @@ class xes_analysis():
             # ax.title(str('Fit'))
             # ax.xlabel(str('Energy (eV)'))
             # ax.ylabel(str('Counts/s'))
-            #ax.invert_xaxis()
+            # ax.invert_xaxis()
 
             #ax.plot(self.x_linear,self.y_linear,'--',color='tab:purple')
             ax.legend()
             fig_gui.tight_layout()
    
     def get_params(self):
-        parameters = self.bestFit.get_params()
-        return self.params, parameters
+        parameters = self.best_ind.get_params()
+        return parameters
+    '''
+        print(parameters)
+        self.params = []
+        i=0
+        for param in parameters:
+            if type(param) == str or bool:
+                if type(param) == str:
+                    self.params.append(param)
+                    i += 1
+            else:
+                self.params[i].append(param)
+        return self.params
+    '''
