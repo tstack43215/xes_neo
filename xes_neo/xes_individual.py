@@ -17,7 +17,7 @@ class Individual():
         pars_range (dict) each key is the name of a parameter with a tuple that contains the range the parameter is allowed to explore
         """
 
-        self.pars_range = pars_range
+        self.parsRange = pars_range
         #both peaks and backgrounds are arrays of strings which represent the type of the background of the peak/bkgn
         self.nPeaks = len(peaks)
         self.nBackgrounds = len(backgrounds)
@@ -66,9 +66,10 @@ class Individual():
 
 
     def add_peak(self,peakType):
-        self.peakArr.append(peak(self.pars_range,peakType))
+        self.peakArr.append(peak(self.parsRange,peakType))
+
     def add_bkgn(self,bkgnType):
-        self.bkgnArr.append(background(self.pars_range,bkgnType))
+        self.bkgnArr.append(background(self.parsRange,bkgnType))
 
 
     #adds all backgrounds and peaks as one y value array
@@ -140,8 +141,9 @@ class Individual():
         Note: param array comes in with its last element indicating its type
 
         Args:
-            i (_type_): _description_
-            param_arr (dicts): List of parameters
+            i (int): peak range
+            param_arr (list): List of parameters with the last elements as the peak type
+                i.e. [6000,200,0.5,1,'Voigt']
 
         Returns:
             int: Return code
@@ -182,3 +184,10 @@ class Individual():
         self.Population[i].set(A,h_f,m)
     '''
 
+    def __len__(self):
+        """Returns the length of the independent parameters
+
+        Returns:
+            int: length of list of parameters
+        """
+        return len(self.get_params())

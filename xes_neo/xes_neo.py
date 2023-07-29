@@ -318,6 +318,38 @@ class XES_GA:
 
         self.logger.info("Mutate Times: " + str(self.nmutate))
 
+    @staticmethod
+    def set_pars(individual,split_full_list):
+        """Static Method to set the parameters
+
+        Args:
+            individual (individuals): individuals type
+            split_full_list (list): multidims list containing each peaks type and
+                parameters, and bg peaks.
+        """
+        full_list = copy.copy(split_full_list)
+
+        bg = full_list.pop()
+        for i in range(len(full_list)):
+            individual.setPeak(i,full_list[i])
+
+    @staticmethod
+    def split_into_x(full_list):
+        """Split a full parameters list into multidmenisonal list
+
+        Args:
+            full_list (list): full list of parameters
+        """
+        split_list = []
+        temp_list = []
+        for i in full_list:
+            if isinstance(i,str) == False:
+                temp_list.append(i)
+            else:
+                temp_list.append(i)
+                split_list.append(temp_list)
+                temp_list = []
+
     def mutateIndi_DE(self,mutateIndividuals:list,F:float) -> Individual:
         """
         Mutate the individuals using DE mutation
@@ -329,13 +361,21 @@ class XES_GA:
         length = len(mutateIndividuals[0])
         assert all(len(lst) == length for lst in mutateIndividuals)
 
-        x_list = np.array(mutateIndividuals[0].get())[0]
-        y_list = np.array(mutateIndividuals[1].get())[0]
-        z_list = np.array(mutateIndividuals[2].get())[0]
+        x_Pars = mutateIndividuals[0].get_params()
+        y_Pars = mutateIndividuals[1].get_params()
+        z_Pars = mutateIndividuals[2].get_params()
 
-        new_Pars = x_list + F * (y_list - z_list)
+        # Convert to the extracted full list with peaks and BG
+        full_list = []
+        for i in range(len(x_Pars)):
+            if isinstance(x_Pars[i],str) == False:
+                full_list.append(x_Pars[i]  + F*(y_Pars[i]  - z_Pars[i]))
+            else:
+                full_list.append(x_Pars[i])
 
+        XES_GA.set
         temp_individual = self.generateIndividual()
+
     def mutateIndi(self,indi :int) -> Individual:
         """Mutate the Individual
 
@@ -401,7 +441,11 @@ class XES_GA:
         Returns:
             Individual: crossovered individual
         """
-
+        # TODO: Rewrite this function to use the new code. this is too complicated...
+        #    The `get_params` method needs to calculate a bunch of stuff, but this you have to divided
+        #    FIX: use a dictionary to setup the code.
+        #
+        #
         child = self.generateIndividual()
 
         individual1_path = individual1.get_params()

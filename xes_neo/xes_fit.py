@@ -31,8 +31,8 @@ class peak():
             self.s_o_splittingRange = paramRange['Spin-Orbit Splitting']
         except:
             self.s_o_splittingRange = [0,0,0]
-        
-        
+
+
         #fully free within their range
         self.gaussian = np.random.choice(self.gaussRange)
         self.lorentz = np.random.choice(self.lorentzRange)
@@ -58,14 +58,14 @@ class peak():
             print("Error assigning peak type")
             print("Peaktype found is: " + str(self.peakType))
             exit()
-    
+
     def peakFunc(self,x):
         return self.func(x)
-    
+
     def get(self):
         params = []
         if self.peakType.lower() == 'voigt':
-            params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp,self.peakType] #mutate relies on the order here, so to change this you need to change mutate  
+            params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp,self.peakType] #mutate relies on the order here, so to change this you need to change mutate
         if self.SVSC:
             SVSC_params = self.SVSC_background.get()
             for param in SVSC_params:
@@ -92,7 +92,7 @@ class peak():
             SVSC_vals = self.SVSC_background.getY(x,self.peak_y)
             return self.peak_y,SVSC_vals
         return self.peak_y
-    
+
     def SVSC_toggle(self,boolVal):
         self.SVSC = boolVal
         self.SVSC_background = background(self.paramRange,'SVSC_shirley')
@@ -111,7 +111,7 @@ class peak():
         self.amp = newVal
     def setBindingEnergy(self,newVal):
         self.bindingEnergy = newVal
-    
+
     def set_voigt(self,paramList):
         self.bindingEnergy = paramList[0]
         self.gaussian = paramList[1]
@@ -141,7 +141,7 @@ class peak():
     def mutateSplitting(self,chance):
         if random.random()*100 < chance:
             self.s_o_split = np.random.choice(self.s_o_splittingRange)
-        
+
 
     #A bit scrappy at the moment, may need cleaning later
     def voigtFunc(self,x):
@@ -154,7 +154,7 @@ class peak():
             self.gaussian (float): The standard deviation of the Gaussian distribution.
             self.lorentz (float): The full width at half maximum (FWHM) of the Lorentzian distribution.
             intensity (float): The intensity of the peak.
-            
+
         Returns:
             array-like: The values of the Voigt lineshape at the given x-values.
         """
@@ -168,10 +168,10 @@ class peak():
         # Calculate the Gaussian component
         if self.gaussian == 0:
             self.gaussian = .01
-        
+
         gaussian = np.exp(-np.power(x - self.bindingEnergy, 2) / (2 * np.power(self.gaussian, 2))) / (self.gaussian * np.sqrt(2 * np.pi))
 
-        
+
         # Calculate the Lorentzian component
         xMax = max(x)
         xMin = min(x)
@@ -197,19 +197,19 @@ class peak():
         #if odd
         if (lorentzian_range % 0.002 == 0):
             lorentzian_x_min = -(lorentzian_range/2)
-            lorentzian_x_max = (lorentzian_range/2) + step  
+            lorentzian_x_max = (lorentzian_range/2) + step
         #else even
         else:
             lorentzian_x_min = -(lorentzian_range/2) + (0.5*step)
             lorentzian_x_max = (lorentzian_range/2) + (0.5*step)
 
-        z = np.arange(lorentzian_x_min, lorentzian_x_max, step) 
-        
+        z = np.arange(lorentzian_x_min, lorentzian_x_max, step)
+
 
         # z = np.arange(-xRange, xRange+step,step)
 
         lorentzian = (self.lorentz / (2 * np.pi)) / (np.power(z, 2) + np.power(self.lorentz / 2, 2))
-        
+
         # Perform the convolution using the Fourier transform
         convolve = scipy.signal.convolve(gaussian, lorentzian, mode = 'same')
         #convolve = scipy.signal.fftconvolve(gaussian, lorentzian, mode = 'same')
@@ -218,7 +218,7 @@ class peak():
         #6460-6505
 
         #convolution = np.real(np.fft.ifft(np.fft.fft(gaussian) * np.fft.fft(lorentzian)))
-        
+
         # Scale the intensity of the peak, does automatically right now based on center, this will need to be changed
         # convolve_max = max(convolve)
         # if(convolve_max != 0):
@@ -227,22 +227,22 @@ class peak():
         #     peakAmp = 0
         voigt = convolve * self.amp
         #print(voigt)
-        
+
         #returns, but also updates the yValues of the fit to improve efficiency, we can call that instead of recalculating every time
         self.peak_y = voigt
         #peak.voigt = voigt
         return voigt
-    
+
 
 class background():
-    
+
     def __init__(self,paramRange,bkgnType):
         self.bkgnType = bkgnType
-        
+
         if self.bkgnType == 'Shirley-Sherwood':
             self.bkgn = self.shirley_Sherwood
             #self.bkgn = self.better_shirley
-            
+
             try:
                 k_range = np.arange(paramRange['k_range'][0],paramRange['k_range'][1],paramRange['k_range'][2])
                 self.k = np.random.choice(k_range)
@@ -291,19 +291,19 @@ class background():
             #print(self.background)
 
 
-    #Make sure to add in each background here 
+    #Make sure to add in each background here
     def get(self):
-       if self.bkgnType == 'Shirley-Sherwood':
+        if self.bkgnType == 'Shirley-Sherwood' or self.bkgnType == 'SVSC_shirley':
             return [self.k, self.bkgnType]
-       elif self.bkgnType.lower() == 'linear':
+        elif self.bkgnType.lower() == 'linear':
             return [self.background,self.bkgnType]
-       elif self.bkgnType == 'Exponential':
+        elif self.bkgnType == 'Exponential':
             return [self.bkgnType]
-       elif self.bkgnType == 'SVSC_shirley':
-           return [self.k,self.bkgnType]
+
+
     def getType(self):
         return self.bkgnType
-    
+
     def set_k(self,newVal):
         self.k = newVal
 
@@ -313,9 +313,6 @@ class background():
 
     def set_linear(self,paramArr):
         self.background = paramArr[0]
-
-
-
 
 
     def exponential_bkgn(self,x,y):
@@ -329,13 +326,13 @@ class background():
 
         numP = len(y)
         funcs =[0]*len(y)
-    
+
         #Taken from Aanalyzer code --> not sure why exponent is initially set to 1 or 0
         exponent = 1
         deltaExponent = max(abs(exponent / 100), 0.001)
         exponent += deltaExponent
 
-    
+
         ma += 1  # create exponential
         #Not sure if the x data needs to be flipped for BE instead of KE --> The exponential should be on the left side of the peak not the right
         for j in range(1, numP): #Cut off before numP so the end point is off. Need to fix this in order to scale down the righthand side of the background to the data
@@ -347,16 +344,16 @@ class background():
             funcs[j] = -(np.exp(gar)) #Added negative sign to flip exponential to be in the -xy plane instead of +xy plane
 
         self.yBkgn = funcs
-        return self.yBkgn 
-    
-    
+        return self.yBkgn
 
 
 
 
 
 
-     #Integral slope background works for now but is bad. Left side of data is not scaling properly 
+
+
+     #Integral slope background works for now but is bad. Left side of data is not scaling properly
     def linear_background(self,x,y):
         self.y = y
         self.x = x
@@ -378,8 +375,8 @@ class background():
         self.x = x
         E = x
         J = y
-        
-    
+
+
         def integralOne(E, J, B, E1=0, E2=-1):
             integral = []
             if E2 < 0:
@@ -403,7 +400,7 @@ class background():
         def iterateOnce(I,B,E1=0,E2=-1):
             b = [getBn(E,I,B,E1,E2) for E in range(len(I))]
             return b
-    
+
         Bn = [0 for i in range(len(J))]
         Bn = iterateOnce(J,Bn)
         for i in range(6): #how many iterations it's doing
@@ -412,8 +409,8 @@ class background():
             B_diff = [Bn[j] - B_temp[j] for j in range(len(Bn))] #Could make a check to see if the iterations are getting better. Usually little difference after 7 iterations
 
         self.yBkgn = Bn
-        
-       
+
+
         return self.yBkgn
 
 
@@ -425,7 +422,7 @@ class background():
 
 
     def SVSC_shirley(self, x, y):
-        
+
         self.y = y
         self.x = x
         #Should probably declare these items outside of each background type
@@ -435,15 +432,15 @@ class background():
         ma = maxPeaks + numberBackgrounds #will need to change to make it able to use multiple peaks/backgrounds
         numP = len(self.y)
         a =[0]*len(self.x) #dont know if we need a anymore?
-        
-        #voigt = peak.voigt 
+
+        #voigt = peak.voigt
         funcs = y #len = numP -1 #recover initial peak curve --> How to get y points of just one peak??? Use BE range + some delta
         backgroundFromPeakShirleyFix = [0]*(len(self.y)-1) #not sure why its one less than the number of points
         SVSC_bkgn = backgroundFromPeakShirleyFix #easier to write --> original name comes from aanalyzer code
 
         a_old = 0.3
-        a_new = 0.5 #are these initial values too large? 
-        old_fit = 10000 
+        a_new = 0.5 #are these initial values too large?
+        old_fit = 10000
         best_fit = funcs #setting initial best fit --> just equal to y originally
         SVSC_diff = 1
         while a_new >= 0: #Iterates until a = 0, but keeps track of std of background to voigt fit. Need to find a better way for the GA to optimize a
@@ -451,16 +448,16 @@ class background():
             for i in range(maxPeaks):#calculates background for each peak then iterates
                 #a_ratio is some parameter ratio --> I think it is the ratio of one parameter of different correlated peaks, unsure as to which parameter is being correlated
                 a_ratio_b4 = a_old #Right now these are just random --> real code: a[ peakShirleyma[ peakShirelyCorrTo] ] / a[ mama[peakShirelyCorrTo] ]
-                a_ratio_after = a_new #defined on line 15233 in PUnit1 --> Values are a[] before and after lfitmod is called 
+                a_ratio_after = a_new #defined on line 15233 in PUnit1 --> Values are a[] before and after lfitmod is called
                 peakShirleyBackground = 0.8*a_ratio_b4 + 0.2*a_ratio_after #I think this is supposed to be the scattering factor? Now sure how it is optimized
                 #Maybe for now we should treat peakShirleyBackground as the scattering factor?
-                
+
                 for j in np.arange(numP -2, 0, -1):
                     SVSC_bkgn[j-1] = self.y[j-1]*-(self.x[j+1]-self.x[j])*peakShirleyBackground + SVSC_bkgn[j] #isnt this just what we already had but now with a wider range?
                     funcs[j] += SVSC_bkgn[j-1]
                 #should write array in here to store each peak curves background --> will sum these up later
                 i +=1
-                
+
                 iteration_diff = np.subtract(voigt, funcs) #need to change voigt to whatever the curve fit y array is
                 new_fit = np.std(iteration_diff)
                 new_fit_array = funcs
@@ -474,7 +471,7 @@ class background():
 
         funcs = best_fit
         #return funcs #Not sure how we are calling this (self.yBKgn?)
-        self.yBkgn = funcs    
+        self.yBkgn = funcs
 
         return self.yBkgn
 
@@ -494,7 +491,7 @@ class background():
         useIntegralBkgn=True
         numP = [0]*len(self.y) #we are using this as an array right now but it should just be the number of data points
         a =[0]*len(self.x)
-       
+
 
         def iterations(self,x,y):
             numPeaksUsed = 1
@@ -517,24 +514,24 @@ class background():
                 #yLeftLocal += datos[dataNumber].ModifiedCurve.y[nLeftLocal + j]
                 yRightLocal += self.y[len(self.y) - nRightLocal-1 + j]
                 yLeftLocal += self.y[nLeftLocal + j]
-        
+
             yLeftLocal /= (numPointsAroundBackgroundLimitsLocal // 2) * 2 + 1
             yRightLocal /= (numPointsAroundBackgroundLimitsLocal // 2) * 2 + 1
 
 
-        
+
             nLeft = nLeftLocal
             nRight = len(x)-nRightLocal
             global yRight
             yRight = yRightLocal
             yLeft = yLeftLocal
 
-           
+
             iterationsIntegralBkgn = 6
             BkgdCurve = []
             funcs = numP
             #funcs = np.zeros((ma, numP))
-        
+
             if useIntegralBkgn: #from Aanalyzer code line 14867
                 ma += 1 #Need to add in array to store each peak background peak[ma] --> sum in other backgrounds? peak[ma] += funcs...
                 #funcs[ma][numP] = 0
@@ -548,11 +545,11 @@ class background():
                 for j in range(0, nLeft):
                     #funcs[ma][j] = funcs[ma][nLeft]
                     funcs[j] = yLeft-yRight
-            
+
                 integralma = ma
 
             '''
-            #iterates shirley background    
+            #iterates shirley background
             if useIntegralBkgn: #from Aanalyzer code line 15140
                 for l in range(iterationsIntegralBkgn):
                     for j in range(nRight-1, nLeft, -1):
@@ -562,17 +559,17 @@ class background():
                         #funcs[integralma][j] = funcs[integralma][nLeft]
                         funcs[j] = funcs[nLeft]
                         #calls lfitmod here -->calculates chisq and deletes all parameters
-                        
+
                     l += 1
             '''
             return funcs
-        for i in range(6): #How many iterations it is performing 
+        for i in range(6): #How many iterations it is performing
             funcs = iterations(self,x,y)
         self.yBkgn = funcs
         for i in range(len(self.yBkgn)):
             self.yBkgn[i] += yRight
-        
-        return self.yBkgn    
+
+        return self.yBkgn
     '''
     Just barely started on peak shirley, commented out so it wont cause a compilation error
     def peak_shirley(self,x,y,peak):
