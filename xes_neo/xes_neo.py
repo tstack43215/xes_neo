@@ -296,6 +296,9 @@ class XES_GA:
             for i in range(self.npops):
                 candidates = [candidate for candidate in range(self.npops) if candidate != i]
                 a,b,c = np.random.choice(candidates,3,replace=False)
+                mutation_vectors = [self.Populations[a],self.Populations[b],self.Populations[c]]
+                temp_individual = self.mutateIndi_DE(mutation_vectors,self.F)
+                temp_individual = self.checkBound(temp_individual)
 
                 # self.mutated_Populations.append(self.mutateIndi(i))
         else:
@@ -373,8 +376,13 @@ class XES_GA:
             else:
                 full_list.append(x_Pars[i])
 
-        XES_GA.set
+        split_full_list = XES_GA.split_into_x(full_list)
         temp_individual = self.generateIndividual()
+        XES_GA.set_pars(temp_individual,split_full_list)
+
+        return temp_individual
+
+
 
     def mutateIndi(self,indi :int) -> Individual:
         """Mutate the Individual
