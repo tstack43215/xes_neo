@@ -77,6 +77,7 @@ class peak():
                 exit()
             else:
                 return params
+
     def getGaussian(self):
         return self.gaussian
     def getLorenztian(self):
@@ -85,6 +86,24 @@ class peak():
         return self.amp
     def getBindingEnergy(self):
         return self.bindingEnergy
+
+    def getParams(self):
+        temp_dicts = {}
+        if self.peakType.lower() == 'voigt':
+            temp_dicts['bindingEnergy'] = self.bindingEnergy
+            temp_dicts['gaussian'] = self.gaussian
+            temp_dicts['lorentz'] = self.lorentz
+            temp_dicts['amp'] = self.amp
+            temp_dicts['peakType'] = self.peakType
+
+        elif self.SVSC:
+            SVSC_params = self.SVSC_background.getParams()
+            for key in SVSC_params:
+                temp_dicts[key] = SVSC_params[key]
+        else:
+            raise Exception("Cant do 'def getParams' in peaks class in XPS_FIT, most likely a new peak was added and needs to be added to the get options")
+
+        return temp_dicts
 
     def getY(self,x):
         self.peakFunc(x)
@@ -233,6 +252,24 @@ class peak():
         #peak.voigt = voigt
         return voigt
 
+    @staticmethod
+    def check(value,min,max):
+
+        if value < min:
+            value = min
+        elif value > max:
+            value = max
+
+        return value
+
+    # def checkOutbound(self):
+    #     """
+    #     Check if the peaks value is within bounds after mutation.
+    #     """
+
+
+
+
 
 class background():
 
@@ -300,6 +337,20 @@ class background():
         elif self.bkgnType == 'Exponential':
             return [self.bkgnType]
 
+
+    def getParams(self):
+        temp_dict = {}
+        if self.bkgnType == 'Shirley-Sherwood' or self.bkgnType == 'SVSC_shirley':
+            temp_dict['k'] = self.k
+            temp_dict['type'] = self.bkgnType
+        elif self.bkgnType.lower() == 'linear':
+            temp_dict['background'] = self.background
+            temp_dict['type'] = self.bkgnType
+        elif self.bkgnType == 'Exponential':
+            # return [self.bkgnType]
+            temp_dict['type'] = self.bkgnType
+
+        return temp_dict
 
     def getType(self):
         return self.bkgnType
