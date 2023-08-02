@@ -96,6 +96,7 @@ class peak():
             temp_dicts['amp'] = self.amp
             temp_dicts['peakType'] = self.peakType
 
+            return temp_dicts
         elif self.SVSC:
             SVSC_params = self.SVSC_background.getParams()
             for key in SVSC_params:
@@ -148,18 +149,45 @@ class peak():
     def mutateGauss(self,chance):
         if random.random()*100 < chance:
             self.gaussian = np.random.choice(self.gaussRange)
+
     def mutateLorentz(self,chance):
         if random.random()*100 < chance:
             self.lorentz = np.random.choice(self.lorentzRange)
+
     def mutateAmplitude(self,chance):
         if random.random()*100 < chance:
             self.amp = np.random.choice(self.ampRange)
+
     def mutateBE(self,chance):
         if random.random()*100 < chance:
             self.bindingEnergy = np.random.choice(self.bindingEnergyRange)
+
     def mutateSplitting(self,chance):
         if random.random()*100 < chance:
             self.s_o_split = np.random.choice(self.s_o_splittingRange)
+
+    @staticmethod
+    def check(value,min,max):
+        if value < min:
+            value = min
+        elif value > max:
+            value = max
+
+        return value
+
+    def checkOutbound(self):
+        """
+        Check if the peaks value is within bounds after mutation.
+        """
+        if self.peakType.lower() == 'voigt':
+            self.bindingEnergy = self.check(self.bindingEnergy,self.paramRange['Peak Energy'][0],self.paramRange['Peak Energy'][1])
+            self.gaussian = self.check(self.gaussian,self.paramRange['Gaussian'][0],self.paramRange['Gaussian'][1])
+            self.lorentz = self.check(self.lorentz,self.paramRange['Lorentzian'][0],self.paramRange['Lorentzian'][1])
+            self.amp = self.check(self.amp,self.paramRange['Amplitude'][0],self.paramRange['Amplitude'][1])
+
+        else:
+            raise Exception ('SVSC not implemented for checkforBound')
+
 
 
     #A bit scrappy at the moment, may need cleaning later
@@ -252,20 +280,6 @@ class peak():
         #peak.voigt = voigt
         return voigt
 
-    @staticmethod
-    def check(value,min,max):
-
-        if value < min:
-            value = min
-        elif value > max:
-            value = max
-
-        return value
-
-    # def checkOutbound(self):
-    #     """
-    #     Check if the peaks value is within bounds after mutation.
-    #     """
 
 
 
