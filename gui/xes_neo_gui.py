@@ -789,7 +789,7 @@ class App():
         original_chance_of_mutation_entry = ttk.Combobox(self.mutation_tab, width=7,textvariable=self.original_chance_of_mutation,values=mut_list, state="readonly")
         original_chance_of_mutation_entry.grid(column=4, row=3, sticky=W)
 
-        mutated_options_drop_list = ttk.Combobox(self.mutation_tab, width=2, textvariable=self.mutated_options,values=[0,1,2],state="readonly")
+        mutated_options_drop_list = ttk.Combobox(self.mutation_tab, width=2, textvariable=self.mutated_options,values=[0,1,2,3],state="readonly")
         mutated_options_drop_list.grid(column=4, row=4, sticky=W)
 
 #___Fitting Parameters Tab____________________________________________________________________________________________
