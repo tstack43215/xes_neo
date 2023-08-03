@@ -253,7 +253,7 @@ class XES_GA:
 
     def eval_Pop(self,populations):
         scores = []
-        for _,individual in enumerate(populations):
+        for i,individual in enumerate(populations):
             temp_score = self.fitness(individual)
             scores.append(temp_score)
 
@@ -297,15 +297,15 @@ class XES_GA:
         else:
             self.crossoverPopulation()
             self.adjust_DE_parameters()
-            trial_fitness = self.eval_pop(self.trialPopulations)
+            trial_fitness = self.eval_Pop(self.trialPopulations)
 
             for i in range(self.npops):
                 if trial_fitness[i] < self.og_fitness[i]:
                     self.Populations[i] = self.trialPopulations[i]
 
-
             self.logger.info(f"Average Trial Population Fitness: {np.average(trial_fitness)}")
             self.logger.info(f"Average Population Fitness: {np.average(self.og_fitness)}")
+
         self.et = timecall()
         self.tdiff = self.et - self.st
         self.tt = self.tt + self.tdiff
@@ -338,15 +338,18 @@ class XES_GA:
             else:
                 tempPars.append(popPars[i])
 
-        # tempInd.
         split_full_list = XES_GA.split_into_x(tempPars)
         temp_individual = self.generateIndividual()
-        XES_GA.set_pars(temp_individual,split_full_list)
+        XES_GA.setPars(temp_individual,split_full_list)
 
         return temp_individual
 
     def adjust_DE_parameters(self,on=True):
-        """Adjust the DE parameters using jDE algorithm
+        """
+        Adjust the DE parameters using jDE algorithm
+
+        Args:
+            on (bool, optional): _description_. Defaults to True.
         """
         if on:
             rand_val = np.random.rand(4)
@@ -394,10 +397,10 @@ class XES_GA:
                 self.mut_chance -= 0.5
                 self.mut_chance = abs(self.mut_chance)
 
-        for i in range(self.npops):
-            if random.random()*100 < self.mut_chance:
-                self.nmutate += 1
-                self.Populations[i] = self.mutateIndi(i)
+            for i in range(self.npops):
+                if random.random()*100 < self.mut_chance:
+                    self.nmutate += 1
+                    self.Populations[i] = self.mutateIndi(i)
 
         self.logger.info("Mutate Times: " + str(self.nmutate))
 
@@ -411,7 +414,7 @@ class XES_GA:
                 parameters, and bg peaks.
         """
         full_list = copy.copy(split_full_list)
-
+        # remove the bg
         bg = full_list.pop()
         for i in range(len(full_list)):
             individual.setPeak(i,full_list[i])
@@ -433,6 +436,7 @@ class XES_GA:
                 split_list.append(temp_list)
                 temp_list = []
 
+        return split_list
     def mutateIndi_DE(self,mutateIndividuals:list,F:float) -> Individual:
         """
         Mutate the individuals using DE mutation
@@ -489,7 +493,6 @@ class XES_GA:
             # Create a new individual with the same parameters
             og_pars = copy.copy(self.Populations[indi].get_peaks())
 
-
             og_individual.setPeaks(og_pars)
             og_score = self.fitness(og_individual)
 
@@ -532,8 +535,7 @@ class XES_GA:
         # TODO: Rewrite this function to use the new code. this is too complicated...
         #    The `get_params` method needs to calculate a bunch of stuff, but this you have to divided
         #    FIX: use a dictionary to setup the code.
-        #
-        #
+
         child = self.generateIndividual()
 
         individual1_path = individual1.get_params()
