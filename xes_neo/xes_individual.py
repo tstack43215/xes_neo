@@ -10,13 +10,16 @@ from matplotlib.bezier import get_parallels
 from .xes_fit import peak,background
 
 class Individual():
-    def __init__(self,backgrounds,peaks,pars_range=''):
-        """
-        backgrounds (array) Array where each element is the name of the background type desired
-        peaks (array) array where each element is the name of the desired peakType
-        pars_range (dict) each key is the name of a parameter with a tuple that contains the range the parameter is allowed to explore
-        """
 
+    def __init__(self,backgrounds,peaks,pars_range={}):
+        """
+        Creates an individual with the given backgrounds and peaks
+
+        Args:
+            backgrounds (list): List of background types
+            peaks (list): List of peak types
+            pars_range (dict), optional): dictionary of the paras limits.
+        """
         self.parsRange = pars_range
         #both peaks and backgrounds are arrays of strings which represent the type of the background of the peak/bkgn
         self.nPeaks = len(peaks)
@@ -191,3 +194,12 @@ class Individual():
             int: length of list of parameters
         """
         return len(self.get_params())
+
+    def checkBound(self):
+        """
+        Check if the parameters are within the bounds
+        """
+
+        for i in self.peakArr:
+            i.checkOutbound()
+

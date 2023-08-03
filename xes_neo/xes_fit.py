@@ -80,14 +80,25 @@ class peak():
 
     def getGaussian(self):
         return self.gaussian
+
     def getLorenztian(self):
         return self.lorentz
+
     def getAmplitude(self):
         return self.amp
-    def getBindingEnergy(self):
+
+    def getBindingEnergy(self) -> dict:
         return self.bindingEnergy
 
     def getParams(self):
+        """Get the params of the peak, similar to `def get` but returns a dictionary instead of a list
+
+        Raises:
+            Exception: _description_
+
+        Returns:
+            dicts: dictionary of the parameters
+        """
         temp_dicts = {}
         if self.peakType.lower() == 'voigt':
             temp_dicts['bindingEnergy'] = self.bindingEnergy
@@ -176,8 +187,10 @@ class peak():
         return value
 
     def checkOutbound(self):
-        """
-        Check if the peaks value is within bounds after mutation.
+        """Check if out of bounds
+
+        Raises:
+            Exception: SVSC not implemented for checkforBound
         """
         if self.peakType.lower() == 'voigt':
             self.bindingEnergy = self.check(self.bindingEnergy,self.paramRange['Peak Energy'][0],self.paramRange['Peak Energy'][1])

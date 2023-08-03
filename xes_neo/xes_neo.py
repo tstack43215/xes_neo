@@ -70,6 +70,12 @@ class XES_GA:
         self.time = False
         self.tt = 0
 
+
+        # DE related:
+        self.F = 0.5
+        self.cR = 0.3
+
+
     def initialize_file_path(self):
         """Initalize file paths for output and log files
         """
@@ -130,10 +136,8 @@ class XES_GA:
         """
         Initalize range
 
-        # TODO: Initalize range will be difference for each paths depend if the run are
-        # in series, therefore the ranges will self-adjust
+        # TODO: Initalize range wi            self.crossoverPopulation()
 
-        Args:
             i (int, optional): _description_. Defaults to 0.
             BestIndi (_type_, optional): _description_. Defaults to None.
         """
@@ -192,7 +196,7 @@ class XES_GA:
         self.globBestFit = self.sorted_population[0]
 
         print("First gen generated")
-    # @profile
+
     def fitness(self,indObj):
         """
         Evaluate fitness of a individual
@@ -207,9 +211,7 @@ class XES_GA:
            # loss = loss + (yTotal[j]*self.x_array[j]**2 - self.y_array[j]* self.x_array[j]**2 )**2
             #loss = loss + (((yTotal[j]- self.y_array[j])**2)*self.y_array[j]
             loss = loss + (((yTotal[j]- self.y_array[j])**2))*np.sqrt(self.y_array[j])
-        # if loss == np.nan:
-            # print(individual[0].verbose())
-        return loss
+        # if loss    # @profile
 
     def eval_Population(self)-> list:
         """Evaluate Populations
@@ -268,17 +270,72 @@ class XES_GA:
             self.logger.info("History Best Indi:\n" + str((self.globBestFit[0].get_params())))
 
         nextBreeders = self.selectFromPopulation()
-        self.logger.info("Number of Breeders: " + str(len(self.parents)))
-        self.logger.info("DiffCounter: " + str(self.diffCounter))
-        self.logger.info("Diff %: " + str(self.diffCounter / self.genNum))
-        self.logger.info("Mutation Chance: " + str(self.mut_chance))
+
         self.mutatePopulation()
-        self.createChildren()
+        if self.mut_opt != 3:
+            self.selectFromPopulation()
+            self.createChildren()
+            self.logger.info("Number of Breeders: " + str(len(self.parents)))
+            self.logger.info("DiffCounter: " + str(self.diffCounter))
+            self.logger.info("Diff %: " + str(self.diffCounter / self.genNum))
+            self.logger.info("Mutation Chance: " + str(self.mut_chance))
+        # DE
+        else:
+            self.crossoverPopulation()
 
         self.et = timecall()
         self.tdiff = self.et - self.st
         self.tt = self.tt + self.tdiff
         self.logger.info("Time: "+ str(round(self.tdiff,5))+ "s")
+
+    def crossoverPopulation(self):
+        self.trialPopulations = []
+        for i in range(self.npops):
+            self.trialPopulations.append(self.crossoverDE(self.mutated_Populations[i],self.Populations[i],self.cR))
+
+    def crossoverDE(self,mutateInd: Individual, popInd: Individual, cR: float) -> Individual:
+        """Uniform crossover of DE using `self.cR`
+
+        Args:
+            mutateInd (Individual): Individual for the mutated population
+            popInd (Individual): Individual for the original population
+            cR (float): crossover rate
+
+        Returns:
+            Individual: crossovered individual
+        """
+
+        p = np.random.rand(len(mutateInd))
+        mutatePars = mutateInd.get_params()
+        popPars = popInd.get_params()
+        tempPars = []
+        for i in range(len(mutateInd)):
+            if p[i] < cR:
+                tempPars.append(mutatePars[i])
+            else:
+                tempPars.append(popPars[i])
+
+        # tempInd.
+        split_full_list = XES_GA.split_into_x(tempPars)
+        temp_individual = self.generateIndividual()
+        XES_GA.set_pars(temp_individual,split_full_list)
+
+        return temp_individual
+
+    def adjust_DE_parameters(self,on=True):
+        """Adjust the DE parameters using jDE algorithm
+        """
+        if on:
+            rand_val = np.random.rand(4)
+            tau_1 = 0.1
+            tau_2 = 0.1
+            if rand_val[1] < tau_1:
+                self.F = 0.1 + rand_val[0] * 0.9
+                self.logger.info(f"F has been adjusted to {np.round(self.F,4)}")
+
+            if rand_val[3] < tau_2:
+                self.cR = rand_val[2]
+                self.logger.info(f"Cr has been adjusted to {np.round(self.cR,4)}")
 
     def mutatePopulation(self):
         """
@@ -298,9 +355,9 @@ class XES_GA:
                 a,b,c = np.random.choice(candidates,3,replace=False)
                 mutation_vectors = [self.Populations[a],self.Populations[b],self.Populations[c]]
                 temp_individual = self.mutateIndi_DE(mutation_vectors,self.F)
-                temp_individual = self.checkBound(temp_individual)
+                temp_individual.checkBound()
+                self.mutated_Populations.append(temp_individual)
 
-                # self.mutated_Populations.append(self.mutateIndi(i))
         else:
             # Rechenberg mutation
             if self.bestDiff < 0.1:
@@ -322,7 +379,7 @@ class XES_GA:
         self.logger.info("Mutate Times: " + str(self.nmutate))
 
     @staticmethod
-    def set_pars(individual,split_full_list):
+    def setPars(individual,split_full_list):
         """Static Method to set the parameters
 
         Args:
@@ -378,7 +435,7 @@ class XES_GA:
 
         split_full_list = XES_GA.split_into_x(full_list)
         temp_individual = self.generateIndividual()
-        XES_GA.set_pars(temp_individual,split_full_list)
+        XES_GA.setPars(temp_individual,split_full_list)
 
         return temp_individual
 
