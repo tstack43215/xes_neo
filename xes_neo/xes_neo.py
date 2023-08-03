@@ -183,6 +183,7 @@ class XES_GA:
         """
 
         ind = Individual(self.backgrounds,self.peak_type,self.pars_range)
+        # print(ind.get_params())
         return ind
 
     def generateFirstGen(self):
@@ -253,7 +254,7 @@ class XES_GA:
 
     def eval_Pop(self,populations):
         scores = []
-        for i,individual in enumerate(populations):
+        for _,individual in enumerate(populations):
             temp_score = self.fitness(individual)
             scores.append(temp_score)
 
@@ -283,7 +284,7 @@ class XES_GA:
             self.logger.info("NanCounter: " + str(self.nan_counter))
             self.logger.info("History Best Indi:\n" + str((self.globBestFit[0].get_params())))
 
-        nextBreeders = self.selectFromPopulation()
+        # nextBreeders = self.selectFromPopulation()
 
         self.mutatePopulation()
         if self.mut_opt != 3:
@@ -339,9 +340,9 @@ class XES_GA:
                 tempPars.append(popPars[i])
 
         split_full_list = XES_GA.split_into_x(tempPars)
+
         temp_individual = self.generateIndividual()
         XES_GA.setPars(temp_individual,split_full_list)
-
         return temp_individual
 
     def adjust_DE_parameters(self,on=True):

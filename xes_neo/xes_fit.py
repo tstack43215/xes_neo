@@ -20,6 +20,7 @@ class peak():
         Semi-Free take in a starting guess and modify it within an allowed range
 
         Then initalizes the peakType and hooks the proper function up to the correspond peakFunc
+        TODO: This is wrong...
         """
         #fetch ranges for the values from the dict
         self.paramRange= paramRange
@@ -177,14 +178,6 @@ class peak():
         if random.random()*100 < chance:
             self.s_o_split = np.random.choice(self.s_o_splittingRange)
 
-    @staticmethod
-    def check(value,min,max):
-        if value < min:
-            value = min
-        elif value > max:
-            value = max
-
-        return value
 
     def checkOutbound(self):
         """Check if out of bounds
@@ -193,10 +186,13 @@ class peak():
             Exception: SVSC not implemented for checkforBound
         """
         if self.peakType.lower() == 'voigt':
-            self.bindingEnergy = self.check(self.bindingEnergy,self.paramRange['Peak Energy'][0],self.paramRange['Peak Energy'][1])
-            self.gaussian = self.check(self.gaussian,self.paramRange['Gaussian'][0],self.paramRange['Gaussian'][1])
-            self.lorentz = self.check(self.lorentz,self.paramRange['Lorentzian'][0],self.paramRange['Lorentzian'][1])
-            self.amp = self.check(self.amp,self.paramRange['Amplitude'][0],self.paramRange['Amplitude'][1])
+            peakEnergy_min = np.min(self.paramRange['Peak Energy Guess'])
+            peakEnergy_max = np.max(self.paramRange['Peak Energy Guess'])
+
+            self.bindingEnergy = np.clip(self.bindingEnergy,peakEnergy_min + self.paramRange['Peak Energy'][0],peakEnergy_max + self.paramRange['Peak Energy'][1])
+            self.gaussian = np.clip(self.gaussian,self.paramRange['Gaussian'][0],self.paramRange['Gaussian'][1])
+            self.lorentz = np.clip(self.lorentz,self.paramRange['Lorentzian'][0],self.paramRange['Lorentzian'][1])
+            self.amp = np.clip(self.amp,self.paramRange['Amplitude'][0],self.paramRange['Amplitude'][1])
 
         else:
             raise Exception ('SVSC not implemented for checkforBound')

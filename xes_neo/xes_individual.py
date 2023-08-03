@@ -43,12 +43,13 @@ class Individual():
             peak_energy_range = pars_range[range_key]
             PeakEnergy1,PeakEnergy2 =peak_energy_range[0],peak_energy_range[1]
             peak_energy = pars_range[guess_key][i]
-            pars_range[range_key][0],pars_range[range_key][1] = [peak_energy_range[0] + peak_energy, peak_energy_range[1] + peak_energy,]
+            pars_range[range_key][0],pars_range[range_key][1] = [peak_energy_range[0] + peak_energy, peak_energy_range[1] + peak_energy]
 
-            #print("Calculated range is " + str(pars_range[range_key][0]) + " " + str(pars_range[range_key][1]))
+            # pars_range['PeakEng_Scale'] =  [peak_energy_range[0] + peak_energy, peak_energy_range[1] + peak_energy]
             self.peakArr[i] = peak(pars_range,peaks[i])
             if self.SVSC_toggle:
                 self.peakArr[i].SVSC_toggle(self.SVSC_toggle) #activate peak shirley
+
 
             pars_range[range_key][0],pars_range[range_key][1] = PeakEnergy1,PeakEnergy2
         '''
