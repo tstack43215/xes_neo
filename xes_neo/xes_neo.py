@@ -211,7 +211,9 @@ class XES_GA:
            # loss = loss + (yTotal[j]*self.x_array[j]**2 - self.y_array[j]* self.x_array[j]**2 )**2
             #loss = loss + (((yTotal[j]- self.y_array[j])**2)*self.y_array[j]
             loss = loss + (((yTotal[j]- self.y_array[j])**2))*np.sqrt(self.y_array[j])
-        # if loss    # @profile
+        # if loss == np.nan:
+            # print(individual[0].verbose())
+        return loss
 
     def eval_Population(self)-> list:
         """Evaluate Populations
