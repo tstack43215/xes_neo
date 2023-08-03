@@ -20,9 +20,12 @@ class peak():
         Semi-Free take in a starting guess and modify it within an allowed range
 
         Then initalizes the peakType and hooks the proper function up to the correspond peakFunc
-        TODO: This is wrong...
+
+        Args:
+            paramRange (dicts): Dictionary of the peak and background parameters and their allowed ranges
+            peakType (list): list of peak types
+            singlet_or_doublet (str, optional): singlet or doublet. Defaults to 'singlet'.
         """
-        #fetch ranges for the values from the dict
         self.paramRange= paramRange
         self.gaussRange = np.arange(paramRange['Gaussian'][0],paramRange['Gaussian'][1],paramRange['Gaussian'][2])
         self.lorentzRange = np.arange(paramRange['Lorentzian'][0],paramRange['Lorentzian'][1],paramRange['Lorentzian'][2])
@@ -34,7 +37,7 @@ class peak():
             self.s_o_splittingRange = [0,0,0]
 
 
-        #fully free within their range
+        # Fully free within their range
         self.gaussian = np.random.choice(self.gaussRange)
         self.lorentz = np.random.choice(self.lorentzRange)
         self.amp = np.random.choice(self.ampRange)
@@ -198,30 +201,24 @@ class peak():
             raise Exception ('SVSC not implemented for checkforBound')
 
 
-
-    #A bit scrappy at the moment, may need cleaning later
     def voigtFunc(self,x):
         """
         Calculate the Voigt lineshape with variable peak position and intensity using a convolution of a Gaussian and a Lorentzian distribution.
 
-        Parameters:
-            x (array-like): The input array of independent variables.
+        Peaks Parameters:
             self.bindingEnergy (float): The position of the peak.
             self.gaussian (float): The standard deviation of the Gaussian distribution.
             self.lorentz (float): The full width at half maximum (FWHM) of the Lorentzian distribution.
-            intensity (float): The intensity of the peak.
+            self.amp (float): The amplitude of the peak.
+
+
+        Args:
+            x (list): The input array of independent variables.
 
         Returns:
-            array-like: The values of the Voigt lineshape at the given x-values.
+            list: The output array of voigt values.
         """
-        '''
-        try:
-            x = np.asarray(x, dtype=float)
-            self.bindingEnergy = np.asarray(self.bindingEnergy, dtype=float)
-        except ValueError:
-            raise ValueError("Invalid input for 'x' or 'self.bindingEnergy'. Please provide numeric arrays or lists.")
-        '''
-        # Calculate the Gaussian component
+
         if self.gaussian == 0:
             self.gaussian = .01
 
@@ -229,26 +226,17 @@ class peak():
 
 
         # Calculate the Lorentzian component
-        xMax = max(x)
-        xMin = min(x)
-        xRange = (xMax-xMin)/2
+        # TODO: need asserations to make sure the stepsize is the same across the array
         stepSize = x[2]-x[1]
-        '''
-        print(xMax)
-        print(xMin)
-        print(xRange)
-        print(stepSize)
-        # '''
+
         # energy_step = x[1] - x[0]
         decimal_places = 2
         step = round(stepSize, decimal_places)
         energy_min = min(x)
         energy_max = max(x)
         lorentzian_range =  energy_max - energy_min
-        #print(lorentzian_range)
-        #print(len(x))
 
-        #Check whether the energy range is odd or even because it affects the lorentzian x-value array
+        #Check whether the energy range is odd or even because it affects the lorentzian x-value array cutoff values
 
         #if odd
         if (lorentzian_range % 0.002 == 0):
@@ -260,8 +248,6 @@ class peak():
             lorentzian_x_max = (lorentzian_range/2) + (0.5*step)
 
         z = np.arange(lorentzian_x_min, lorentzian_x_max, step)
-
-
         # z = np.arange(-xRange, xRange+step,step)
 
         lorentzian = (self.lorentz / (2 * np.pi)) / (np.power(z, 2) + np.power(self.lorentz / 2, 2))
@@ -275,20 +261,12 @@ class peak():
 
         #convolution = np.real(np.fft.ifft(np.fft.fft(gaussian) * np.fft.fft(lorentzian)))
 
-        # Scale the intensity of the peak, does automatically right now based on center, this will need to be changed
-        # convolve_max = max(convolve)
-        # if(convolve_max != 0):
-        #     peakAmp = self.amp/max(convolve)
-        # else:
-        #     peakAmp = 0
+        # TODO: Scale the intensity of the peak, does automatically right now based on center, this will need to be changed
         voigt = convolve * self.amp
-        #print(voigt)
 
         #returns, but also updates the yValues of the fit to improve efficiency, we can call that instead of recalculating every time
         self.peak_y = voigt
-        #peak.voigt = voigt
         return voigt
-
 
 
 
