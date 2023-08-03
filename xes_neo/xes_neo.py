@@ -223,6 +223,7 @@ class XES_GA:
         """
         score = []
         populationPerf = {}
+        self.og_fitness = []
         self.nan_counter = 0
         for i,individual in enumerate(self.Populations):
 
@@ -232,7 +233,10 @@ class XES_GA:
                 self.nan_counter +=1
             else:
                 score.append(temp_score)
+
                 populationPerf[individual] = temp_score
+
+        self.og_fitness = score
         self.sorted_population = sorted(populationPerf.items(), key=operator.itemgetter(1), reverse=False)
         '''
         for a,b in self.sorted_population:
@@ -246,6 +250,14 @@ class XES_GA:
 
         return score
 
+
+    def eval_Pop(self,populations):
+        scores = []
+        for _,individual in enumerate(populations):
+            temp_score = self.fitness(individual)
+            scores.append(temp_score)
+
+        return scores
 
     def next_generation(self):
         """Calculate next generations
@@ -284,7 +296,16 @@ class XES_GA:
         # DE
         else:
             self.crossoverPopulation()
+            self.adjust_DE_parameters()
+            trial_fitness = self.eval_pop(self.trialPopulations)
 
+            for i in range(self.npops):
+                if trial_fitness[i] < self.og_fitness[i]:
+                    self.Populations[i] = self.trialPopulations[i]
+
+
+            self.logger.info(f"Average Trial Population Fitness: {np.average(trial_fitness)}")
+            self.logger.info(f"Average Population Fitness: {np.average(self.og_fitness)}")
         self.et = timecall()
         self.tdiff = self.et - self.st
         self.tt = self.tt + self.tdiff
