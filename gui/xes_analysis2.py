@@ -70,10 +70,10 @@ class xes_analysis():
         """
         if type == 'voigt':
         	print("I selected Voigt")
-            return 5
+        	return 5
         if type == 'double lorentzian':
         	print("I selected Double Lorentzian")
-            return 6
+        	return 6
         if type == 'shirley-sherwood':
             return 2
         if type == 'exponential':
