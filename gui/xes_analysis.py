@@ -81,6 +81,9 @@ class xes_Analysis:
         """
         if type == 'voigt':
             return 4
+        if type == 'double lorentzian':
+        	print("I selected Double Lorentzian")
+        	return 6
         if type == 'Shirley-Sherwood':
             return 0
         if type == 'Peak-Shirley':
