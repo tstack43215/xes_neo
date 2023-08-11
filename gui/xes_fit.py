@@ -53,6 +53,8 @@ class peak():
         self.peakType = peakType
         if(self.peakType.lower() == 'voigt'):
             self.func = self.voigtFunc
+        elif(self.peakType.lower() == "double lorentzian"):
+            self.func = self.doubleLorentzFunc
 
         else:
             print("Error assigning peak type")
@@ -208,6 +210,83 @@ class peak():
         self.peak_y = voigt
         #peak.voigt = voigt
         return voigt
+
+
+    def doubleLorentzFunc(self,x):
+        #Same as voigt but with an added asymmetry factor to the width (lorentz)in the lorentzian equation
+        global bindingEnergy
+        # Calculate the Gaussian component
+        if self.gaussian == 0:
+            self.gaussian = .01
+        
+
+        data_range= max(x) - min(x)
+        data_range /= 2
+        
+        middle = min(x)+data_range
+        offset = self.bindingEnergy-middle
+        num_points = len(x)
+        x_values, dx = np.linspace(-data_range,data_range,num_points,retstep=True)
+
+        #gaussian = np.exp(-np.power(x - self.bindingEnergy, 2) / (2 * np.power(self.gaussian, 2))) / (self.gaussian * np.sqrt(2 * np.pi))
+        gaussian = np.exp(-np.power(x_values, 2) / ((np.power(self.gaussian, 2)))) / (self.gaussian * np.sqrt(np.pi)) #Took away 2*np.power(self.gaussian,2) and np.sqrt(2*np.pi)
+        
+        # Calculate the Lorentzian component
+        
+        #Added +offset to all Lorentzian functions instead of Gauss --> It has to be inside the equation to make the leftside of the peak more lorentzian
+        numP = len(x)
+        HWHM = self.lorentz/2
+        lorentzLeft = HWHM*self.asymmetry #Width of left side of peak due to asymmetry 
+        #z = np.arange(-xRange, xRange+stepSize,.05)
+        yDoubleL = [0]*numP
+        #Double Lorentzian formula taken from Aanalyzer code in PUnit1 line 7157
+        for i in np.arange(1, numP, 1):
+            if x[i] < offset:
+                yDoubleL[i] = 1 / ( 1 + np.power( (x_values[i] + offset)/lorentzLeft, 2 ) ) / np.pi
+            else:
+                yDoubleL[i] = 1 / ( 1 + np.power( (x_values[i] + offset)/HWHM, 2 ) ) / np.pi
+            
+            #yDoubleL[2*i] = 0;
+        lorentzian = yDoubleL 
+        
+        if self.is_singlet == False: #If it is a doublet
+            
+            
+            for i in np.arange(1, numP, 1):
+                
+
+                if x[i] >= (self.bindingEnergy + self.spinOrbitSplit):
+                    yDoubleL_left = self.branching_ratio / ( 1 + np.power( (x_values[i] + self.spinOrbitSplit + offset)/lorentzLeft, 2 ) ) / np.pi
+            
+                else: #This is the middle point of the higher BE peak
+                     yDoubleL_left = self.branching_ratio / ( 1 + np.power( (x_values[i] + self.spinOrbitSplit + offset)/HWHM, 2 ) ) / np.pi
+            
+                if  x[i] > self.bindingEnergy:
+                    yDoubleL_right = 1 / ( 1 + np.power( (x_values[i] + offset)/lorentzLeft, 2 ) ) / np.pi
+            
+        
+                else:
+                    yDoubleL_right = 1 / ( 1 + np.power( (x_values[i] + offset)/HWHM, 2 ) ) / np.pi
+            
+       
+
+                yDoubleL[i] = (yDoubleL_right + yDoubleL_left) / (1 + self.branching_ratio)
+            
+            lorentzian = yDoubleL 
+        #lorentzian = (self.amp * self.asymmetry / (2 * np.pi)) / (np.power(z, 2) + np.power(self.lorentz * self.asymmetry / 2, 2)) #Double Lorentzian 
+        
+        # Perform the convolution using the Fourier transform
+        doubleLorentz = scipy.signal.convolve(gaussian,lorentzian,'same')
+
+        #normalize the height so that intensity is the height of the max of the peak
+        scale = max(doubleLorentz)
+        for i in range(len(doubleLorentz)):
+            doubleLorentz[i] *= (self.amp/scale)
+        
+        
+        self.peak_y = doubleLorentz
+        
+        return doubleLorentz
     
 
 class background():

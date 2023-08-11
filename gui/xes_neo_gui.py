@@ -802,7 +802,8 @@ class App():
         self.peak_state = 'disabled' #initial state for so_split and path_branching
 
         #Peak type picker:
-        self.peak_types = ['Voigt', 'Gaussian', 'Lorentzian','Double Lorentzian'] #leave it like this so it can be accessed elsewhere -evan
+        #self.peak_types = ['Voigt', 'Gaussian', 'Lorentzian','Double Lorentzian'] #leave it like this so it can be accessed elsewhere -evan
+        self.peak_types = ['Voigt', 'Double Lorentzian']
         #Line between selections and peak parameters:
         self.separators = ttk.Separator(self.fitting_param_tab,orient = 'horizontal')
         self.separators.grid(column= 0,row = 5,columnspan=8,sticky=W+E,padx=self.padx, pady=self.pady)
@@ -830,7 +831,8 @@ class App():
                 peak_labels.append("Peak" + str(i+1))
                 rows.append(row)
 
-                self.peakTypes_entries[i] = ttk.Combobox(self.fitting_param_tab, textvariable=self.peaks[i], font=self.entryFont, values= voigt_for_peak_type)
+                #self.peakTypes_entries[i] = ttk.Combobox(self.fitting_param_tab, textvariable=self.peaks[i], font=self.entryFont, values= voigt_for_peak_type)
+                self.peakTypes_entries[i] = ttk.Combobox(self.fitting_param_tab, textvariable=self.peaks[i], font=self.entryFont, values= self.peak_types)
                 self.peakTypes_entries[i].grid(column=2, row=row, sticky=W)
                 #Peak Energy:
                 self.peak_Energy_entries[i] = ttk.Entry(self.fitting_param_tab, textvariable=self.peak_Energy_guesses[i], font=self.entryFont)
