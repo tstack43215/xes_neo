@@ -268,8 +268,8 @@ class xes_analysis():
                 #peaks2[peak_index].set_voigt(param_list)
                 #peak_index += 1
             if Type.lower() in self.peak_options:
-				peaks2[peak_index].set(param_list)
-                peak_index += 1
+            	peaks2[peak_index].set(param_list)
+            	peak_index += 1
             if Type.lower() == 'shirley-sherwood':
                 bkgns2[bkgn_index].set_shirley_sherwood(param_list)
                 bkgn_index +=1
