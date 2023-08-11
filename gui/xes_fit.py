@@ -303,30 +303,7 @@ class peak():
             #yDoubleL[2*i] = 0;
         lorentzian = yDoubleL 
         
-        if self.is_singlet == False: #If it is a doublet
-            
-            
-            for i in np.arange(1, numP, 1):
-                
-
-                if x[i] >= (self.bindingEnergy + self.spinOrbitSplit):
-                    yDoubleL_left = self.branching_ratio / ( 1 + np.power( (x_values[i] + self.spinOrbitSplit + offset)/lorentzLeft, 2 ) ) / np.pi
-            
-                else: #This is the middle point of the higher BE peak
-                     yDoubleL_left = self.branching_ratio / ( 1 + np.power( (x_values[i] + self.spinOrbitSplit + offset)/HWHM, 2 ) ) / np.pi
-            
-                if  x[i] > self.bindingEnergy:
-                    yDoubleL_right = 1 / ( 1 + np.power( (x_values[i] + offset)/lorentzLeft, 2 ) ) / np.pi
-            
         
-                else:
-                    yDoubleL_right = 1 / ( 1 + np.power( (x_values[i] + offset)/HWHM, 2 ) ) / np.pi
-            
-       
-
-                yDoubleL[i] = (yDoubleL_right + yDoubleL_left) / (1 + self.branching_ratio)
-            
-            lorentzian = yDoubleL 
         #lorentzian = (self.amp * self.asymmetry / (2 * np.pi)) / (np.power(z, 2) + np.power(self.lorentz * self.asymmetry / 2, 2)) #Double Lorentzian 
         
         # Perform the convolution using the Fourier transform
