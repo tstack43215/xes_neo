@@ -232,6 +232,15 @@ class peak():
             self.gaussian = np.clip(self.gaussian,self.paramRange['Gaussian'][0],self.paramRange['Gaussian'][1])
             self.lorentz = np.clip(self.lorentz,self.paramRange['Lorentzian'][0],self.paramRange['Lorentzian'][1])
             self.amp = np.clip(self.amp,self.paramRange['Amplitude'][0],self.paramRange['Amplitude'][1])
+        if self.peakType.lower() == 'double lorentzian':
+            peakEnergy_min = np.min(self.paramRange['Peak Energy Guess'])
+            peakEnergy_max = np.max(self.paramRange['Peak Energy Guess'])
+
+            self.bindingEnergy = np.clip(self.bindingEnergy,peakEnergy_min + self.paramRange['Peak Energy'][0],peakEnergy_max + self.paramRange['Peak Energy'][1])
+            self.gaussian = np.clip(self.gaussian,self.paramRange['Gaussian'][0],self.paramRange['Gaussian'][1])
+            self.lorentz = np.clip(self.lorentz,self.paramRange['Lorentzian'][0],self.paramRange['Lorentzian'][1])
+            self.asymmetry = np.clip(self.asymmetry,self.paramRange['Asymmetry'][0],self.paramRange['Asymmetry'][1])
+            self.amp = np.clip(self.amp,self.paramRange['Amplitude'][0],self.paramRange['Amplitude'][1])
 
         else:
             raise Exception ('SVSC not implemented for checkforBound')
