@@ -159,7 +159,7 @@ class App():
         #self.path_branching = StringVar(self.root, "Select branching ratio")
 
         #Ranges for different variables
-        self.peak_energy_min,self.peak_energy_max,self.peak_energy_delta = -1.5,1.5,.01
+        self.peak_energy_min,self.peak_energy_max,self.peak_energy_delta = -0.5,0.5,.01
         self.sigma_min,self.sigma_max,self.sigma_delta = 0,4,.001
         self.fwhm_min,self.fwhm_max,self.fwhm_delta = 0,2.5,.001
         self.asymmetry_min,self.asymmetry_max,self.asymmetry_delta = 1,5, 0.01
