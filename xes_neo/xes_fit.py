@@ -72,11 +72,13 @@ class peak():
 
     def get(self):
         params = []
+        #print("The peak type is:", self.peakType.lower())
         if self.peakType.lower() == 'voigt':
-            params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp,self.peakType] #mutate relies on the order here, so to change this you need to change mutate
+            params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp] #mutate relies on the order here, so to change this you need to change mutate
         if self.peakType.lower() == 'double lorentzian':
             params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp,self.asymmetry]
             #params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp,self.asymmetry,self.peakType]
+        params.append(self.peakType)
         if self.SVSC:
             SVSC_params = self.SVSC_background.get()
             for param in SVSC_params:
@@ -329,6 +331,11 @@ class peak():
         #Added +offset to all Lorentzian functions instead of Gauss --> It has to be inside the equation to make the leftside of the peak more lorentzian
         numP = len(x)
         HWHM = self.lorentz/2
+        if HWHM == 0:
+        	HWHM = .01
+        
+        #print("The asymmetry is:", self.asymmetry)
+        
         lorentzLeft = HWHM*self.asymmetry #Width of left side of peak due to asymmetry 
         #z = np.arange(-xRange, xRange+stepSize,.05)
         yDoubleL = [0]*numP
