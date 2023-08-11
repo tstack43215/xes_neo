@@ -69,8 +69,10 @@ class xes_analysis():
         always has the number of parametes + 1, the +1 is for it's type
         """
         if type == 'voigt':
+        	print("I selected Voigt")
             return 5
         if type == 'double lorentzian':
+        	print("I selected Double Lorentzian")
             return 6
         if type == 'shirley-sherwood':
             return 2
