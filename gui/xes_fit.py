@@ -308,14 +308,14 @@ class peak():
         #lorentzian = (self.amp * self.asymmetry / (2 * np.pi)) / (np.power(z, 2) + np.power(self.lorentz * self.asymmetry / 2, 2)) #Double Lorentzian 
         
         # Perform the convolution using the Fourier transform
-        doubleLorentz = scipy.signal.convolve(gaussian,lorentzian,'same')
+        convolve = scipy.signal.convolve(gaussian,lorentzian,'same')
 
         #normalize the height so that intensity is the height of the max of the peak
-        scale = max(doubleLorentz)
-        for i in range(len(doubleLorentz)):
-            doubleLorentz[i] *= (self.amp/scale)
+        #scale = max(doubleLorentz)
+        #for i in range(len(doubleLorentz)):
+            #doubleLorentz[i] *= (self.amp/scale)
         
-        
+        doubleLorentz = convolve * self.amp
         self.peak_y = doubleLorentz
         
         return doubleLorentz
