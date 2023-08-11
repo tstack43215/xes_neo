@@ -63,6 +63,9 @@ class Individual():
         '''
 
 
+        for i in range(self.nPeaks):
+            self.peakArr[i] = peak(pars_range,peaks[i])
+            
         #each index in the peaks/background array is the name of the peak/background type to be used
         for i in range(self.nBackgrounds):
             self.bkgnArr[i] = background(pars_range,backgrounds[i])
@@ -77,19 +80,27 @@ class Individual():
 
 
     #adds all backgrounds and peaks as one y value array
-    def getFit(self,x,y):
-        yFit = [0]*len(x)
-        for i in range(self.nPeaks):
-            if self.SVSC_toggle:
-                peak_y,svsc_y = self.peakArr[i].peakFunc(x)
-                yFit += peak_y
-                yFit += svsc_y
-            else:
-                yFit += self.peakArr[i].peakFunc(x)
-        for i in range(self.nBackgrounds):
-            yFit += self.bkgnArr[i].getY(x,y)
+    #def getFit(self,x,y):
+        #yFit = [0]*len(x)
+        #for i in range(self.nPeaks):
+            #if self.SVSC_toggle:
+                #peak_y,svsc_y = self.peakArr[i].peakFunc(x)
+                #yFit += peak_y
+                #yFit += svsc_y
+            #else:
+                #yFit += self.peakArr[i].peakFunc(x)
+        #for i in range(self.nBackgrounds):
+            #yFit += self.bkgnArr[i].getY(x,y)
 
-        return yFit
+        #return yFit
+        
+    def getFit(self, x, y):
+    	yFit = [0]*len(x)
+    	for i in range(self.nPeaks):
+    		yFit += self.peakArr[i].peakFunc(x)
+    	for i in range(self.nBackgrounds):
+    		yFit += self.bkgnArray[i].getY(x,y)
+    	return yFit
 
     def get(self):
         """
@@ -138,7 +149,11 @@ class Individual():
             peak.mutate(chance)
         for bkgn in self.bkgnArr:
             bkgn.mutate(chance)
-
+            
+    def setPeak(self, i, peak_Energy, gauss, lorentz, amp):
+    	self.peakArr[i].set(peak_Energy, gauss, lorentz, amp)
+    
+	'''
     def setPeak(self,i,param_arr) -> int:
         """Forces a given peak to have the given values, returns 0 on success, -1 on failure
 
@@ -160,6 +175,7 @@ class Individual():
             return 0
         else:
             return -1
+	'''
 
     def setPeaks(self,param_arr):
         """Set a bunch of peaks value
