@@ -67,6 +67,8 @@ class xes_analysis():
         """
         if type == 'voigt':
             return 5
+        if type == 'double lorentzian':
+            return 6
         if type == 'shirley-sherwood':
             return 2
         if type == 'exponential':
@@ -296,6 +298,7 @@ class xes_analysis():
         center_label = []
         sigma_label = []
         gamma_label = []
+        asymmetry_label = []
 
         for i in range(1,self.number_of_parameters+1):
             label.append('amp_' + str(i))
@@ -310,7 +313,10 @@ class xes_analysis():
             label.append('gamma_' + str(i))
             gamma_label.append('gamma_' + str(i))
 
-        return label,amp_label,center_label,sigma_label,gamma_label
+            label.append('asymmetry_' + str(i))
+            asymmetry_label.append('asymmetry_' + str(i))
+
+        return label,amp_label,center_label,sigma_label,gamma_label,asymmetry_label
 
     def fitness(self,indObj):
         """
@@ -327,8 +333,7 @@ class xes_analysis():
 
            # loss = loss + (yTotal[j]*self.x_array[j]**2 - self.y_array[j]* self.x_array[j]**2 )**2
             #loss = loss + (((yTotal[j]- self.y[j])**2) * self.y[j])
-            #loss = loss + ((yTotal[j]- self.y[j])**2)*np.sqrt(self.y[j])
-            loss = loss + ((yTotal[j]- self.y[j])**2)
+            loss = loss + ((yTotal[j]- self.y[j])**2)*np.sqrt(self.y[j])
         # if loss == np.nan:
             # print(individual[0].verbose())
         return loss

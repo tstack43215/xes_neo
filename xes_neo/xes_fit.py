@@ -31,6 +31,7 @@ class peak():
         self.lorentzRange = np.arange(paramRange['Lorentzian'][0],paramRange['Lorentzian'][1],paramRange['Lorentzian'][2])
         self.bindingEnergyRange = np.arange(paramRange['Peak Energy'][0],paramRange['Peak Energy'][1],paramRange['Peak Energy'][2])
         self.ampRange = np.arange(paramRange['Amplitude'][0],paramRange['Amplitude'][1],paramRange['Amplitude'][2])
+        self.asymmetryRange = np.arange(paramRange['Asymmetry'][0],paramRange['Asymmetry'][1],paramRange['Asymmetry'][2])
         try:
             self.s_o_splittingRange = paramRange['Spin-Orbit Splitting']
         except:
@@ -41,6 +42,7 @@ class peak():
         self.gaussian = np.random.choice(self.gaussRange)
         self.lorentz = np.random.choice(self.lorentzRange)
         self.amp = np.random.choice(self.ampRange)
+        self.asymmetry = np.random.choice(self.asymmetryRange)
 
 
         #the range is a modifier on the input value
@@ -72,6 +74,9 @@ class peak():
         params = []
         if self.peakType.lower() == 'voigt':
             params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp,self.peakType] #mutate relies on the order here, so to change this you need to change mutate
+        if self.peakType.lower() == 'double lorentzian':
+            params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp,self.asymmetry]
+            #params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp,self.asymmetry,self.peakType]
         if self.SVSC:
             SVSC_params = self.SVSC_background.get()
             for param in SVSC_params:
@@ -92,6 +97,8 @@ class peak():
 
     def getAmplitude(self):
         return self.amp
+    def getAsymmetry(self):
+        return self.asymmetry
 
     def getBindingEnergy(self) -> dict:
         return self.bindingEnergy
@@ -146,6 +153,8 @@ class peak():
         self.lorentz = newVal
     def setAmplitude(self,newVal):
         self.amp = newVal
+    def setAsymmetry(self,newVal):
+        self.asymmetry = newVal
     def setBindingEnergy(self,newVal):
         self.bindingEnergy = newVal
 
@@ -154,6 +163,13 @@ class peak():
         self.gaussian = paramList[1]
         self.lorentz = paramList[2]
         self.amp = paramList[3]
+    def set_doubleLorentz(self,paramList):
+        self.bindingEnergy = paramList[0]
+        self.gaussian = paramList[1]
+        self.lorentz = paramList[2]
+        self.amp = paramList[3]
+        self.asymmetry = paramList[4]
+
 
 
     def mutate(self,chance):
@@ -162,6 +178,7 @@ class peak():
         self.mutateBE(chance)
         self.mutateLorentz(chance)
         self.mutateSplitting(chance)
+        self.mutateAsymmetry(chance)
 
     def mutateGauss(self,chance):
         if random.random()*100 < chance:
@@ -182,6 +199,9 @@ class peak():
     def mutateSplitting(self,chance):
         if random.random()*100 < chance:
             self.s_o_split = np.random.choice(self.s_o_splittingRange)
+    def mutateAsymmetry(self,chance):
+        if random.random()*100 < chance:
+            self.asymmetry = np.random.choice(self.asymmetryRange)
 
 
     def checkOutbound(self):

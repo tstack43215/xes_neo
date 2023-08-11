@@ -159,9 +159,10 @@ class App():
         #self.path_branching = StringVar(self.root, "Select branching ratio")
 
         #Ranges for different variables
-        self.peak_energy_min,self.peak_energy_max,self.peak_energy_delta = -0.5,0.5,.01
+        self.peak_energy_min,self.peak_energy_max,self.peak_energy_delta = -1.5,1.5,.01
         self.sigma_min,self.sigma_max,self.sigma_delta = 0,4,.001
         self.fwhm_min,self.fwhm_max,self.fwhm_delta = 0,2.5,.001
+        self.asymmetry_min,self.asymmetry_max,self.asymmetry_delta = 1,5, 0.01
         self.amp_min,self.amp_max,self.amp_delta = 0,5000, 0.05
         self.background_min,self.background_max,self.background_delta = 0,1.25,0.001
         self.slope_min,self.slope_max,self.slope_delta = 0,0.01, 0.00001 #Allows for a slope to be applied to the background, currently hard set to 0
@@ -287,7 +288,7 @@ class App():
            inputPeaks.append(self.peaks[i].get())
 
         paths = ("\n\n[Paths]\nnPeaks={nPeaks} \nbackground_type = {bkgn_type} \npeak_type = {peak_type} \npeak_Energy_range = {peak_energy_range} \npeak_energy={peak_energy} \nsigma_range = "
-                 "{sigma_range} \nfwhm_range = {fwhm_range} \namp_range = {amp_range} \nbackground_range = {background_range} \nslope_range = {slope_range}"
+                 "{sigma_range} \nfwhm_range = {fwhm_range} \nasymmetry_range = {asymmetry_range} \namp_range = {amp_range} \nbackground_range = {background_range} \nslope_range = {slope_range}"
                  .format(nPeaks=int(self.number_of_peaks.get()),
                          bkgn_type = ",".join(str(i) for i in self.background_types),
                          peak_type = ",".join(str(i) for i in inputPeaks),
@@ -295,6 +296,7 @@ class App():
                          peak_energy = ", ".join(str(i) for i in guesses),
                          sigma_range=", ".join(str(i) for i in [self.sigma_min, self.sigma_max, self.sigma_delta]),
                          fwhm_range=", ".join(str(i) for i in [self.fwhm_min, self.fwhm_max, self.fwhm_delta]),
+                         asymmetry_range=",".join(str(i) for i in [self.asymmetry_min, self.asymmetry_max, self.asymmetry_delta]),
                          amp_range =",".join(str(i) for i in [self.amp_min,self.amp_max,self.amp_delta]),
                          background_range = ", ".join(str(i) for i in [self.background_min, self.background_max, self.background_delta]),
                          slope_range = ", ".join(str(i) for i in [self.slope_min, self.slope_max, self.slope_delta])
