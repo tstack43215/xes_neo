@@ -74,6 +74,11 @@ class peak():
         if self.peakType.lower() == 'double lorentzian':
             params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp,self.asymmetry]
             #params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp,self.asymmetry,self.peakType]
+        if self.SVSC:
+            SVSC_params = self.SVSC_background.get()
+            for param in SVSC_params:
+                params.append(param)
+            return params
         else:
             if len(params) == 0:
                 print("Cant do 'def get' in peaks class in XPS_FIT, most likely a new peak was added and needs to be added to the get options")
@@ -96,11 +101,25 @@ class peak():
         self.peakFunc(x)
         return self.peak_y
     
+    '''
     def set(self,BE,gauss,lorentz,amp):
         self.bindingEnergy = BE
         self.gaussian = gauss
         self.lorentz = lorentz
         self.amp = amp
+    '''
+
+    def set(self,params):
+        """
+        This is the main differentiator between the fit in gui and xpsfolders
+        The set function takes in a list of params, and should expect them to come in the same order that they were pushed out
+        in the get function.
+
+        """
+        if(self.peakType.lower() == "voigt"):
+            self.set_voigt(params)
+        elif(self.peakType.lower() == "double lorentzian"):
+            self.set_doubleLorentz(params)
 
     def setGaussian(self,newVal):
         self.gaussian = newVal
@@ -273,9 +292,9 @@ class peak():
         #Double Lorentzian formula taken from Aanalyzer code in PUnit1 line 7157
         for i in np.arange(1, numP, 1):
             if x[i] < offset:
-                yDoubleL[i] = 1 / ( 1 + np.power( (x_values[i] + offset)/lorentzLeft, 2 ) ) / np.pi
-            else:
                 yDoubleL[i] = 1 / ( 1 + np.power( (x_values[i] + offset)/HWHM, 2 ) ) / np.pi
+            else:
+                yDoubleL[i] = 1 / ( 1 + np.power( (x_values[i] + offset)/lorentzLeft, 2 ) ) / np.pi
             
             #yDoubleL[2*i] = 0;
         lorentzian = yDoubleL 

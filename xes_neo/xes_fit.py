@@ -140,12 +140,25 @@ class peak():
     def SVSC_toggle(self,boolVal):
         self.SVSC = boolVal
         self.SVSC_background = background(self.paramRange,'SVSC_shirley')
-
+    '''
     def set(self,BE,gauss,lorentz,amp):
         self.bindingEnergy = BE
         self.gaussian = gauss
         self.lorentz = lorentz
         self.amp = amp
+    '''
+
+    def set(self,params):
+        """
+        This is the main differentiator between the fit in gui and xpsfolders
+        The set function takes in a list of params, and should expect them to come in the same order that they were pushed out
+        in the get function.
+
+        """
+        if(self.peakType.lower() == "voigt"):
+            self.set_voigt(params)
+        elif(self.peakType.lower() == "double lorentzian"):
+            self.set_doubleLorentz(params)
 
     def setGaussian(self,newVal):
         self.gaussian = newVal
@@ -163,6 +176,7 @@ class peak():
         self.gaussian = paramList[1]
         self.lorentz = paramList[2]
         self.amp = paramList[3]
+
     def set_doubleLorentz(self,paramList):
         self.bindingEnergy = paramList[0]
         self.gaussian = paramList[1]
@@ -321,9 +335,9 @@ class peak():
         #Double Lorentzian formula taken from Aanalyzer code in PUnit1 line 7157
         for i in np.arange(1, numP, 1):
             if x[i] < offset:
-                yDoubleL[i] = 1 / ( 1 + np.power( (x_values[i] + offset)/lorentzLeft, 2 ) ) / np.pi
-            else:
                 yDoubleL[i] = 1 / ( 1 + np.power( (x_values[i] + offset)/HWHM, 2 ) ) / np.pi
+            else:
+                yDoubleL[i] = 1 / ( 1 + np.power( (x_values[i] + offset)/lorentzLeft, 2 ) ) / np.pi
             
             #yDoubleL[2*i] = 0;
         lorentzian = yDoubleL 

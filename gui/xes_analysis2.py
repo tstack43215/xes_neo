@@ -38,14 +38,17 @@ class xes_analysis():
         self.dirs = dirs
         fileName = params['fileName']
         self.bkgns = params['bkgns']     
-        self.peaks = params['peaks']   
+        self.peaks = params['peaks']  
+        self.peak_options = self.peaks
+        for i in range(len(self.peaks)):
+            self.peak_options[i] = self.peak_options[i].lower()
         #self.numPeaks = len(self.peaks)
         for i in range(len(self.bkgns)):
             self.bkgns[i] = self.bkgns[i].lower()
-        
+        '''
         for i in range(len(self.peaks)):
             self.peaks[i] = self.peaks[i].lower()
-
+        '''
 
         self.data_obj = params['data obj']
 
@@ -264,12 +267,14 @@ class xes_analysis():
             for k in range(current_index,current_index+num_params-1):
                 param_list.append(best_fit[k])
                 current_index = k+1
-            #if Type.lower() == 'voigt':
-                #peaks2[peak_index].set_voigt(param_list)
-                #peak_index += 1
+            '''
+            if Type.lower() == 'voigt':
+                peaks2[peak_index].set_voigt(param_list)
+                peak_index += 1
+            '''
             if Type.lower() in self.peak_options:
-            	peaks2[peak_index].set(param_list)
-            	peak_index += 1
+                peaks2[peak_index].set(param_list)
+                peak_index += 1
             if Type.lower() == 'shirley-sherwood':
                 bkgns2[bkgn_index].set_shirley_sherwood(param_list)
                 bkgn_index +=1
