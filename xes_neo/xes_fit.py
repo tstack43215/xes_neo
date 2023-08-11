@@ -79,11 +79,6 @@ class peak():
             params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp,self.asymmetry]
             #params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp,self.asymmetry,self.peakType]
         params.append(self.peakType)
-        if self.SVSC:
-            SVSC_params = self.SVSC_background.get()
-            for param in SVSC_params:
-                params.append(param)
-            return params
         else:
             if len(params) == 0:
                 print("Cant do 'def get' in peaks class in XPS_FIT, most likely a new peak was added and needs to be added to the get options")
