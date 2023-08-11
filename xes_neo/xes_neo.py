@@ -1,706 +1,725 @@
+import enum
+from . import helper
+from .import_lib import *
+from .ini_parser import *
+#from pathObj import OliverPharr
+#from .individual import Individual
+# from .pathrange import Pathrange_limits  #may be deletable/ built for XAFS
+# from .nano_neo_data import NanoIndent_Data
+
+
+from .xes_individual import Individual
+from .xes_fit import peak,background
+from .xes_data import xes_data
+
+from copy import deepcopy #fixes bug at line 70ish with deepcopy
 """
-Author: Evan Restuccia (evan@restuccias.com)
+Author: Andy Lau
 """
-from turtle import back
-from matplotlib import get_backend
-import numpy as np
-import scipy as scipy
-from scipy import signal
-import random
 
+# Setup some default constraints
+MAX = 3.40282e+38
+MIN = 1.17549e-38
 
-class peak():
-    #Probably default these to -1 later as a test condition, but not yet sure
-    def __init__(self,paramRange,peakType,singlet_or_doublet='singlet'):
-        """
-        takes in dictionary paramRange, with names of parameters and their corresponding allowed values
-        takes the dictionary and sets the ranges for each
-        Two types of params: Free and semi-free
-        Free params get fully random values within their range
-        Semi-Free take in a starting guess and modify it within an allowed range
+class XES_GA:
 
-        Then initalizes the peakType and hooks the proper function up to the correspond peakFunc
+    def initialize_params(self,verbose = False):
+        """Initalize the params
 
         Args:
-            paramRange (dicts): Dictionary of the peak and background parameters and their allowed ranges
-            peakType (list): list of peak types
-            singlet_or_doublet (str, optional): singlet or doublet. Defaults to 'singlet'.
+            verbose (bool, optional): verbosity. Defaults to False.
         """
-        self.paramRange= paramRange
-        self.gaussRange = np.arange(paramRange['Gaussian'][0],paramRange['Gaussian'][1],paramRange['Gaussian'][2])
-        self.lorentzRange = np.arange(paramRange['Lorentzian'][0],paramRange['Lorentzian'][1],paramRange['Lorentzian'][2])
-        self.bindingEnergyRange = np.arange(paramRange['Peak Energy'][0],paramRange['Peak Energy'][1],paramRange['Peak Energy'][2])
-        self.ampRange = np.arange(paramRange['Amplitude'][0],paramRange['Amplitude'][1],paramRange['Amplitude'][2])
-        self.asymmetryRange = np.arange(paramRange['Asymmetry'][0],paramRange['Asymmetry'][1],paramRange['Asymmetry'][2])
-        try:
-            self.s_o_splittingRange = paramRange['Spin-Orbit Splitting']
-        except:
-            self.s_o_splittingRange = [0,0,0]
+        print("Initializing Params")
+        self.intervalK = 0.05
+        self.tol = np.finfo(np.float64).resolution
 
-
-        # Fully free within their range
-        self.gaussian = np.random.choice(self.gaussRange)
-        self.lorentz = np.random.choice(self.lorentzRange)
-        self.amp = np.random.choice(self.ampRange)
-        self.asymmetry = np.random.choice(self.asymmetryRange)
-
-
-        #the range is a modifier on the input value
-        self.bindingEnergy= np.random.choice(self.bindingEnergyRange)
-        self.s_o_split = np.random.choice(self.s_o_splittingRange)
-
-        self.peakType = peakType
-        self.peak_y = []
-
-        #singlet or doublet baby - not yet functional in voigt peak func
-        self.singlet_or_doublet = singlet_or_doublet
-        self.SVSC = False
-
-        self.peakType = peakType
-        if(self.peakType.lower() == "voigt"):
-            self.func = self.voigtFunc
-        elif(self.peakType.lower() == "double lorentzian"):
-            self.func = self.doubleLorentzFunc
-
-        else:
-            print("Error assigning peak type")
-            print("Peaktype found is: " + str(self.peakType))
-            exit()
-
-    def peakFunc(self,x):
-        return self.func(x)
-
-    def get(self):
-        params = []
-        if self.peakType.lower() == 'voigt':
-            params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp,self.peakType] #mutate relies on the order here, so to change this you need to change mutate
-        if self.peakType.lower() == 'double lorentzian':
-            params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp,self.asymmetry]
-            #params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp,self.asymmetry,self.peakType]
-        if self.SVSC:
-            SVSC_params = self.SVSC_background.get()
-            for param in SVSC_params:
-                params.append(param)
-            return params
-        else:
-            if len(params) == 0:
-                print("Cant do 'def get' in peaks class in XPS_FIT, most likely a new peak was added and needs to be added to the get options")
-                exit()
-            else:
-                return params
-
-    def getGaussian(self):
-        return self.gaussian
-
-    def getLorenztian(self):
-        return self.lorentz
-
-    def getAmplitude(self):
-        return self.amp
-    def getAsymmetry(self):
-        return self.asymmetry
-
-    def getBindingEnergy(self) -> dict:
-        return self.bindingEnergy
-
-    def getParams(self):
-        """Get the params of the peak, similar to `def get` but returns a dictionary instead of a list
-
-        Raises:
-            Exception: _description_
-
-        Returns:
-            dicts: dictionary of the parameters
+    def initialize_variable(self):
+        """Initialize variables
         """
-        temp_dicts = {}
-        if self.peakType.lower() == 'voigt':
-            temp_dicts['bindingEnergy'] = self.bindingEnergy
-            temp_dicts['gaussian'] = self.gaussian
-            temp_dicts['lorentz'] = self.lorentz
-            temp_dicts['amp'] = self.amp
-            temp_dicts['peakType'] = self.peakType
+        print("Initializing Variables")
+        self.genNum = 0
+        self.nChild = 4
+        self.globBestFit = [0,np.inf]
+        self.currBestFit = [0,np.inf]
+        self.bestDiff = np.inf
+        self.bestBest = np.inf
+        self.diffCounter = 0
 
-            return temp_dicts
-        elif self.SVSC:
-            SVSC_params = self.SVSC_background.getParams()
-            for key in SVSC_params:
-                temp_dicts[key] = SVSC_params[key]
-        else:
-            raise Exception("Cant do 'def getParams' in peaks class in XPS_FIT, most likely a new peak was added and needs to be added to the get options")
+        self.pathDictionary = {}
+        self.data_file = data_file
 
-        return temp_dicts
+        # Paths
+        self.npaths = npaths
+        #self.fits = fits
 
-    def getY(self,x):
-        self.peakFunc(x)
-        if self.SVSC:
-            SVSC_vals = self.SVSC_background.getY(x,self.peak_y)
-            return self.peak_y,SVSC_vals
-        return self.peak_y
+        # Populations
+        self.npops = size_population
+        self.ngen = number_of_generation
+        self.steady_state = steady_state
 
-    def SVSC_toggle(self,boolVal):
-        self.SVSC = boolVal
-        self.SVSC_background = background(self.paramRange,'SVSC_shirley')
+        # Mutation Parameters
+        self.mut_opt = mutated_options
+        self.mut_chance = chance_of_mutation
+        # self.mut_chance_e0 = chance_of_mutation_e0
 
-    def set(self,BE,gauss,lorentz,amp):
-        self.bindingEnergy = BE
-        self.gaussian = gauss
-        self.lorentz = lorentz
-        self.amp = amp
+        # Crosover Parameters
+        self.n_bestsam = int(best_sample*self.npops*(0.01))
+        self.n_lucksam = int(lucky_few*self.npops*(0.01))
 
-    def setGaussian(self,newVal):
-        self.gaussian = newVal
-    def setLorentzian(self,newVal):
-        self.lorentz = newVal
-    def setAmplitude(self,newVal):
-        self.amp = newVal
-    def setAsymmetry(self,newVal):
-        self.asymmetry = newVal
-    def setBindingEnergy(self,newVal):
-        self.bindingEnergy = newVal
-
-    def set_voigt(self,paramList):
-        self.bindingEnergy = paramList[0]
-        self.gaussian = paramList[1]
-        self.lorentz = paramList[2]
-        self.amp = paramList[3]
-    def set_doubleLorentz(self,paramList):
-        self.bindingEnergy = paramList[0]
-        self.gaussian = paramList[1]
-        self.lorentz = paramList[2]
-        self.amp = paramList[3]
-        self.asymmetry = paramList[4]
+        # Time related
+        self.time = False
+        self.tt = 0
 
 
-
-    def mutate(self,chance):
-        self.mutateGauss(chance)
-        self.mutateAmplitude(chance)
-        self.mutateBE(chance)
-        self.mutateLorentz(chance)
-        self.mutateSplitting(chance)
-        self.mutateAsymmetry(chance)
-
-    def mutateGauss(self,chance):
-        if random.random()*100 < chance:
-            self.gaussian = np.random.choice(self.gaussRange)
-
-    def mutateLorentz(self,chance):
-        if random.random()*100 < chance:
-            self.lorentz = np.random.choice(self.lorentzRange)
-
-    def mutateAmplitude(self,chance):
-        if random.random()*100 < chance:
-            self.amp = np.random.choice(self.ampRange)
-
-    def mutateBE(self,chance):
-        if random.random()*100 < chance:
-            self.bindingEnergy = np.random.choice(self.bindingEnergyRange)
-
-    def mutateSplitting(self,chance):
-        if random.random()*100 < chance:
-            self.s_o_split = np.random.choice(self.s_o_splittingRange)
-    def mutateAsymmetry(self,chance):
-        if random.random()*100 < chance:
-            self.asymmetry = np.random.choice(self.asymmetryRange)
+        # DE related:
+        self.F = 0.5
+        self.cR = 0.3
 
 
-    def checkOutbound(self):
-        """Check if out of bounds
-
-        Raises:
-            Exception: SVSC not implemented for checkforBound
+    def initialize_file_path(self):
+        """Initalize file paths for output and log files
         """
-        if self.peakType.lower() == 'voigt':
-            peakEnergy_min = np.min(self.paramRange['Peak Energy Guess'])
-            peakEnergy_max = np.max(self.paramRange['Peak Energy Guess'])
+        print("Initializing file paths")
+        self.base = os.getcwd()
+        self.output_path = os.path.join(self.base,output_file)
+        self.check_output_file(self.output_path)
+        self.log_path = os.path.splitext(copy.deepcopy(self.output_path))[0] + ".log"
+        self.check_if_exists(self.log_path)
 
-            self.bindingEnergy = np.clip(self.bindingEnergy,peakEnergy_min + self.paramRange['Peak Energy'][0],peakEnergy_max + self.paramRange['Peak Energy'][1])
-            self.gaussian = np.clip(self.gaussian,self.paramRange['Gaussian'][0],self.paramRange['Gaussian'][1])
-            self.lorentz = np.clip(self.lorentz,self.paramRange['Lorentzian'][0],self.paramRange['Lorentzian'][1])
-            self.amp = np.clip(self.amp,self.paramRange['Amplitude'][0],self.paramRange['Amplitude'][1])
+        # Initialize logger
+        self.logger = logging.getLogger('')
+        # Delete handler
+        self.logger.handlers=[]
+        file_handler = logging.FileHandler(self.log_path,mode='a+',encoding='utf-8')
+        stdout_handler = logging.StreamHandler(sys.stdout)
 
-        else:
-            raise Exception ('SVSC not implemented for checkforBound')
+        formatter = logging.Formatter('%(message)s')
+        file_handler.setFormatter(formatter)
+        stdout_handler.setFormatter(formatter)
+        self.logger.addHandler(file_handler)
+        self.logger.addHandler(stdout_handler)
 
+        self.logger.setLevel(logging.INFO)
+        self.logger.info(banner())
 
-    def voigtFunc(self,x):
-        """
-        Calculate the Voigt lineshape with variable peak position and intensity using a convolution of a Gaussian and a Lorentzian distribution.
-
-        Peaks Parameters:
-            self.bindingEnergy (float): The position of the peak.
-            self.gaussian (float): The standard deviation of the Gaussian distribution.
-            self.lorentz (float): The full width at half maximum (FWHM) of the Lorentzian distribution.
-            self.amp (float): The amplitude of the peak.
-
+    @staticmethod
+    def check_if_exists(path_file):
+        """Check if the file exists, if it does, delete it
 
         Args:
-            x (list): The input array of independent variables.
+            path_file (str): File path
+        """
+        if os.path.exists(path_file):
+            os.remove(path_file)
+        # Make Directory when its missing
+        path = pathlib.Path(path_file)
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+    def check_output_file(self,file):
+        """
+        check if the output file for each of the file
+        """
+        file_base = os.path.splitext(file)[0]
+        XES_GA.check_if_exists(file)
+        self.file = file
+
+        self.file_initial = open(self.output_path,"a+")
+        self.file_initial.write("Gen,TPS,FITTNESS,CURRFIT,CURRIND,BESTFIT,BESTIND\n")  # writing header
+        self.file_initial.close()
+
+        file_data = os.path.splitext(file)[0] + '_data.csv'
+        XES_GA.check_if_exists(file_data)
+        self.file_data = file_data
+
+
+    def initialize_range(self,i=0,BestIndi=None):
+        """
+        Initalize range
+
+        # TODO: Initalize range wi            self.crossoverPopulation()
+
+            i (int, optional): _description_. Defaults to 0.
+            BestIndi (_type_, optional): _description_. Defaults to None.
+        """
+        self.logger.info("Initializing ranges")
+
+        # data = np.genfromtxt(self.data_file,delimiter=',',skip_header=1)
+        self.data_obj = xes_data(self.data_file,0)
+
+        self.x_slice = self.data_obj.get_x()
+        self.y_slice = self.data_obj.get_y()
+        self.x_array = self.x_slice
+        self.y_array = self.y_slice
+
+        yAvg = 0
+        yTot = 0
+        j=0
+        for i,yVal in enumerate(self.data_obj.get_y()[-10:]): #[-10:] gets last 10 items in array.
+            yTot += yVal
+            j=i
+        yAvg = yTot/(j+1)
+        background_range[1] = yAvg
+
+        amp_range[1] = max(self.data_obj.get_y())
+        self.pars_range = {
+            'Peak Energy': peak_energy_range,
+            'Peak Energy Guess': peak_energy_guess,
+            'Gaussian': sigma_range,
+            'Lorentzian': fwhm_range,
+            'Amplitude' : amp_range,
+            'Asymmetry' : asymmetry_range,
+            'Background' : background_range,
+            'Slope' : slope_range,
+            'npeaks' : npaths
+        }
+        self.peak_type = peak_type
+        self.backgrounds = background_type
+
+
+    def generateIndividual(self):
+        """Generate single individual
 
         Returns:
-            list: The output array of voigt values.
+            Individual: Individual
         """
 
-        if self.gaussian == 0:
-            self.gaussian = .01
+        ind = Individual(self.backgrounds,self.peak_type,self.pars_range)
+        # print(ind.get_params())
+        return ind
 
-        gaussian = np.exp(-np.power(x - self.bindingEnergy, 2) / (2 * np.power(self.gaussian, 2))) / (self.gaussian * np.sqrt(2 * np.pi))
+    def generateFirstGen(self):
+        print("generating first gen")
+        self.Populations=[]
 
+        for i in range(self.npops):
+            self.Populations.append(self.generateIndividual())
 
-        # Calculate the Lorentzian component
-        # TODO: need asserations to make sure the stepsize is the same across the array
-        stepSize = x[2]-x[1]
+        self.eval_Population()
+        self.globBestFit = self.sorted_population[0]
 
-        # energy_step = x[1] - x[0]
-        decimal_places = 2
-        step = round(stepSize, decimal_places)
-        energy_min = min(x)
-        energy_max = max(x)
-        lorentzian_range =  energy_max - energy_min
+        print("First gen generated")
 
-        #Check whether the energy range is odd or even because it affects the lorentzian x-value array cutoff values
+    def fitness(self,indObj):
+        """
+        Evaluate fitness of a individual
+        """
+        loss = 0
+        Individual = indObj
+        yTotal = np.zeros(len(self.x_slice))
 
-        #if odd
-        if (lorentzian_range % 0.002 == 0):
-            lorentzian_x_min = -(lorentzian_range/2)
-            lorentzian_x_max = (lorentzian_range/2) + step
-        #else even
-        else:
-            lorentzian_x_min = -(lorentzian_range/2) + (0.5*step)
-            lorentzian_x_max = (lorentzian_range/2) + (0.5*step)
+        yTotal = Individual.getFit(self.x_array,self.y_array)
+        for j in range(len(self.x_array)):
 
-        z = np.arange(lorentzian_x_min, lorentzian_x_max, step)
-        # z = np.arange(-xRange, xRange+step,step)
+           # loss = loss + (yTotal[j]*self.x_array[j]**2 - self.y_array[j]* self.x_array[j]**2 )**2
+            #loss = loss + (((yTotal[j]- self.y_array[j])**2)*self.y_array[j]
+            loss = loss + (((yTotal[j]- self.y_array[j])**2))*np.sqrt(self.y_array[j])
+        # if loss == np.nan:
+            # print(individual[0].verbose())
+        return loss
 
-        lorentzian = (self.lorentz / (2 * np.pi)) / (np.power(z, 2) + np.power(self.lorentz / 2, 2))
+    def eval_Population(self)-> list:
+        """Evaluate Populations
 
-        # Perform the convolution using the Fourier transform
-        convolve = scipy.signal.convolve(gaussian, lorentzian, mode = 'same')
-        #convolve = scipy.signal.fftconvolve(gaussian, lorentzian, mode = 'same')
-        #convolve = scipy.signal.oaconvolve(gaussian, lorentzian, mode = 'full')
-        #write function to center x points at 0
-        #6460-6505
+        Returns:
+            list: List of score
+        """
+        score = []
+        populationPerf = {}
+        self.og_fitness = []
+        self.nan_counter = 0
+        for i,individual in enumerate(self.Populations):
 
-        #convolution = np.real(np.fft.ifft(np.fft.fft(gaussian) * np.fft.fft(lorentzian)))
-
-        # TODO: Scale the intensity of the peak, does automatically right now based on center, this will need to be changed
-        voigt = convolve * self.amp
-
-        #returns, but also updates the yValues of the fit to improve efficiency, we can call that instead of recalculating every time
-        self.peak_y = voigt
-        return voigt
-
-
-    def doubleLorentzFunc(self,x):
-        #Same as voigt but with an added asymmetry factor to the width (lorentz)in the lorentzian equation
-        global bindingEnergy
-        # Calculate the Gaussian component
-        if self.gaussian == 0:
-            self.gaussian = .01
-        
-
-        data_range= max(x) - min(x)
-        data_range /= 2
-        
-        middle = min(x)+data_range
-        offset = self.bindingEnergy-middle
-        num_points = len(x)
-        x_values, dx = np.linspace(-data_range,data_range,num_points,retstep=True)
-
-        #gaussian = np.exp(-np.power(x - self.bindingEnergy, 2) / (2 * np.power(self.gaussian, 2))) / (self.gaussian * np.sqrt(2 * np.pi))
-        gaussian = np.exp(-np.power(x_values, 2) / ((np.power(self.gaussian, 2)))) / (self.gaussian * np.sqrt(np.pi)) #Took away 2*np.power(self.gaussian,2) and np.sqrt(2*np.pi)
-        
-        # Calculate the Lorentzian component
-        
-        #Added +offset to all Lorentzian functions instead of Gauss --> It has to be inside the equation to make the leftside of the peak more lorentzian
-        numP = len(x)
-        HWHM = self.lorentz/2
-        lorentzLeft = HWHM*self.asymmetry #Width of left side of peak due to asymmetry 
-        #z = np.arange(-xRange, xRange+stepSize,.05)
-        yDoubleL = [0]*numP
-        #Double Lorentzian formula taken from Aanalyzer code in PUnit1 line 7157
-        for i in np.arange(1, numP, 1):
-            if x[i] < offset:
-                yDoubleL[i] = 1 / ( 1 + np.power( (x_values[i] + offset)/lorentzLeft, 2 ) ) / np.pi
+            temp_score = self.fitness(individual)
+            # Calculate the score, if encounter nan, discard and generate new individual later
+            if np.isnan(temp_score):
+                self.nan_counter +=1
             else:
-                yDoubleL[i] = 1 / ( 1 + np.power( (x_values[i] + offset)/HWHM, 2 ) ) / np.pi
-            
-            #yDoubleL[2*i] = 0;
-        lorentzian = yDoubleL 
-        
-        
-        #lorentzian = (self.amp * self.asymmetry / (2 * np.pi)) / (np.power(z, 2) + np.power(self.lorentz * self.asymmetry / 2, 2)) #Double Lorentzian 
-        
-        # Perform the convolution using the Fourier transform
-        doubleLorentz = scipy.signal.convolve(gaussian,lorentzian,'same')
+                score.append(temp_score)
 
-        #normalize the height so that intensity is the height of the max of the peak
-        scale = max(doubleLorentz)
-        for i in range(len(doubleLorentz)):
-            doubleLorentz[i] *= (self.amp/scale)
-        
-        
-        self.peak_y = doubleLorentz
-        
-        return doubleLorentz
+                populationPerf[individual] = temp_score
+
+        self.og_fitness = score
+        self.sorted_population = sorted(populationPerf.items(), key=operator.itemgetter(1), reverse=False)
+        '''
+        for a,b in self.sorted_population:
+            print(str(b) + " " + str(a.get_params()))
+        '''
+        ''' Debugging again
+        for i in range(len(self.sorted_population)):
+            print(self.sorted_population[i][0].get_peak(0))
+        '''
+        self.currBestFit = self.sorted_population[0]
+
+        return score
 
 
+    def eval_Pop(self,populations):
+        scores = []
+        for _,individual in enumerate(populations):
+            temp_score = self.fitness(individual)
+            scores.append(temp_score)
 
+        return scores
 
-class background():
+    def next_generation(self):
+        """Calculate next generations
+        """
+        self.st = time.time()
+        self.logger.info("---------------------------------------------------------")
+        self.logger.info(datetime.datetime.fromtimestamp(self.st).strftime('%Y-%m-%d %H:%M:%S'))
+        self.logger.info(f"{helper.bcolors.BOLD}Gen: {helper.bcolors.ENDC}{self.genNum+1}")
 
-    def __init__(self,paramRange,bkgnType):
-        self.bkgnType = bkgnType
+        self.genNum += 1
 
-        if self.bkgnType == 'Shirley-Sherwood':
-            self.bkgn = self.shirley_Sherwood
-            #self.bkgn = self.better_shirley
+        # Evaluate Fitness
+        score = self.eval_Population()
+        self.bestDiff = abs(self.globBestFit[1]-self.currBestFit[1])
+        if self.currBestFit[1] < self.globBestFit[1]:
+            self.globBestFit = self.currBestFit
 
-            try:
-                k_range = np.arange(paramRange['k_range'][0],paramRange['k_range'][1],paramRange['k_range'][2])
-                self.k = np.random.choice(k_range)
-            except:
-                self.k = -1
-        elif self.bkgnType.lower() == 'linear':
-            self.bkgn = self.linear_background
-            self.backgroundRange = np.arange(paramRange['Background'][0],paramRange['Background'][1],paramRange['Background'][2])
-            self.slopeRange = np.arange(paramRange['Slope'][0],paramRange['Slope'][1],paramRange['Slope'][2])
+        with np.printoptions(precision=5, suppress=True):
+            self.logger.info("Different from last best fit: " +str(self.bestDiff))
+            self.logger.info(helper.bcolors.BOLD + "Best fit: " + helper.bcolors.OKBLUE + str(self.currBestFit[1]) + helper.bcolors.ENDC)
+            self.logger.info("Best fit combination:\n" + str((self.sorted_population[0][0].get_params())))
+            self.logger.info(helper.bcolors.BOLD + "History Best: " + helper.bcolors.OKBLUE + str(self.globBestFit[1]) + helper.bcolors.ENDC)
+            self.logger.info("NanCounter: " + str(self.nan_counter))
+            self.logger.info("History Best Indi:\n" + str((self.globBestFit[0].get_params())))
 
-            #self.background is the b value in y = mx+b
-            self.background = np.random.choice(self.backgroundRange)
-            #self.slope = np.random.choice(self.slopeRange)
-            self.slope = 0
-        elif self.bkgnType == 'Exponential':
-            self.bkgn = self.exponential_bkgn
-        elif self.bkgnType == 'SVSC_shirley':
-            self.bkgn = self.SVSC_shirley
-            #func y vals tells you what to integrate over
-            try:
-                k_range = np.arange(paramRange['k_range'][0],paramRange['k_range'][1],paramRange['k_range'][2])
-                self.k = np.random.choice(k_range)
-            except:
-                self.k = -1
+        # nextBreeders = self.selectFromPopulation()
+
+        self.mutatePopulation()
+        if self.mut_opt != 3:
+            self.selectFromPopulation()
+            self.createChildren()
+            self.logger.info("Number of Breeders: " + str(len(self.parents)))
+            self.logger.info("DiffCounter: " + str(self.diffCounter))
+            self.logger.info("Diff %: " + str(self.diffCounter / self.genNum))
+            self.logger.info("Mutation Chance: " + str(self.mut_chance))
+        # DE
+        else:
+            self.crossoverPopulation()
+            self.adjust_DE_parameters()
+            trial_fitness = self.eval_Pop(self.trialPopulations)
+
+            for i in range(self.npops):
+                if trial_fitness[i] < self.og_fitness[i]:
+                    self.Populations[i] = self.trialPopulations[i]
+
+            self.logger.info(f"Average Trial Population Fitness: {np.average(trial_fitness)}")
+            self.logger.info(f"Average Population Fitness: {np.average(self.og_fitness)}")
+
+        self.et = timecall()
+        self.tdiff = self.et - self.st
+        self.tt = self.tt + self.tdiff
+        self.logger.info("Time: "+ str(round(self.tdiff,5))+ "s")
+
+    def crossoverPopulation(self):
+        self.trialPopulations = []
+        for i in range(self.npops):
+            self.trialPopulations.append(self.crossoverDE(self.mutated_Populations[i],self.Populations[i],self.cR))
+
+    def crossoverDE(self,mutateInd: Individual, popInd: Individual, cR: float) -> Individual:
+        """Uniform crossover of DE using `self.cR`
+
+        Args:
+            mutateInd (Individual): Individual for the mutated population
+            popInd (Individual): Individual for the original population
+            cR (float): crossover rate
+
+        Returns:
+            Individual: crossovered individual
+        """
+
+        p = np.random.rand(len(mutateInd))
+        mutatePars = mutateInd.get_params()
+        popPars = popInd.get_params()
+        tempPars = []
+        for i in range(len(mutateInd)):
+            if p[i] < cR:
+                tempPars.append(mutatePars[i])
+            else:
+                tempPars.append(popPars[i])
+
+        split_full_list = XES_GA.split_into_x(tempPars)
+
+        temp_individual = self.generateIndividual()
+        XES_GA.setPars(temp_individual,split_full_list)
+        return temp_individual
+
+    def adjust_DE_parameters(self,on=True):
+        """
+        Adjust the DE parameters using jDE algorithm
+
+        Args:
+            on (bool, optional): _description_. Defaults to True.
+        """
+        if on:
+            rand_val = np.random.rand(4)
+            tau_1 = 0.1
+            tau_2 = 0.1
+            if rand_val[1] < tau_1:
+                self.F = 0.1 + rand_val[0] * 0.9
+                self.logger.info(f"F has been adjusted to {np.round(self.F,4)}")
+
+            if rand_val[3] < tau_2:
+                self.cR = rand_val[2]
+                self.logger.info(f"Cr has been adjusted to {np.round(self.cR,4)}")
+
+    def mutatePopulation(self):
+        """
+        # Mutation operators
+        # 0 = original: generated a new versions:
+        # 1 = mutated every genes in the total populations
+        # 2 = mutated genes inside population based on secondary probability
+        # 3 = Differntial Evolution
+        """
+        self.nmutate = 0
+
+        "DE mutation"
+        if self.mut_opt == 3:
+            self.mutated_Populations = []
+            for i in range(self.npops):
+                candidates = [candidate for candidate in range(self.npops) if candidate != i]
+                a,b,c = np.random.choice(candidates,3,replace=False)
+                mutation_vectors = [self.Populations[a],self.Populations[b],self.Populations[c]]
+                temp_individual = self.mutateIndi_DE(mutation_vectors,self.F)
+                temp_individual.checkBound()
+                self.mutated_Populations.append(temp_individual)
 
         else:
-            print("Error Choosing Background in init of xes_fit")
-            print("Background read as: " + str(self.bkgnType))
-            exit()
-        self.yBkgn = []
-
-    def getY(self,x,y):
-        self.get_Background(x,y)
-        return self.yBkgn
-    def get_Background(self,x,y):
-        self.bkgn(x,y)
-
-
-    def mutate(self,chance):
-        self.mutate_background_val(chance)
-
-    def mutate_background_val(self,chance):
-        if random.random()*100 < chance:
-        	#print(self.background)
-            self.background = np.random.choice(self.backgroundRange)
-            #print(self.background)
-
-
-    #Make sure to add in each background here
-    def get(self):
-        if self.bkgnType == 'Shirley-Sherwood' or self.bkgnType == 'SVSC_shirley':
-            return [self.k, self.bkgnType]
-        elif self.bkgnType.lower() == 'linear':
-            return [self.background,self.bkgnType]
-        elif self.bkgnType == 'Exponential':
-            return [self.bkgnType]
-
-
-    def getParams(self):
-        temp_dict = {}
-        if self.bkgnType == 'Shirley-Sherwood' or self.bkgnType == 'SVSC_shirley':
-            temp_dict['k'] = self.k
-            temp_dict['type'] = self.bkgnType
-        elif self.bkgnType.lower() == 'linear':
-            temp_dict['background'] = self.background
-            temp_dict['type'] = self.bkgnType
-        elif self.bkgnType == 'Exponential':
-            # return [self.bkgnType]
-            temp_dict['type'] = self.bkgnType
-
-        return temp_dict
-
-    def getType(self):
-        return self.bkgnType
-
-    def set_k(self,newVal):
-        self.k = newVal
-
-    def set_shirley_sherwood(self,params):
-        self.k = params[0]
-
-
-    def set_linear(self,paramArr):
-        self.background = paramArr[0]
-
-
-    def exponential_bkgn(self,x,y):
-        self.y = y
-        self.x = x
-        #need to make these parameters outside background functions
-        numPeaksUsed = 1
-        maxPeaks = 1
-        numberBackgrounds = 1
-        ma = maxPeaks + numberBackgrounds
-
-        numP = len(y)
-        funcs =[0]*len(y)
-
-        #Taken from Aanalyzer code --> not sure why exponent is initially set to 1 or 0
-        exponent = 1
-        deltaExponent = max(abs(exponent / 100), 0.001)
-        exponent += deltaExponent
-
-
-        ma += 1  # create exponential
-        #Not sure if the x data needs to be flipped for BE instead of KE --> The exponential should be on the left side of the peak not the right
-        for j in range(1, numP): #Cut off before numP so the end point is off. Need to fix this in order to scale down the righthand side of the background to the data
-            gar = -exponent * (x[j] - x[numP // 2])
-            if gar > 30:
-                gar = 30
-            elif gar < -30:
-                gar = -30
-            funcs[j] = -(np.exp(gar)) #Added negative sign to flip exponential to be in the -xy plane instead of +xy plane
-
-        self.yBkgn = funcs
-        return self.yBkgn
-
-
-
-
-
-
-
-
-     #Integral slope background works for now but is bad. Left side of data is not scaling properly
-    def linear_background(self,x,y):
-        self.y = y
-        self.x = x
-        num_points = len(self.x)
-        self.yBkgn = [0]*num_points
-
-        #slope = (self.y[-1] - self.y[0])/(self.x[-1] - self.x[0])
-        for i in range(num_points):
-            self.yBkgn[i] = self.linear(self.slope,self.x[i],self.background)
-        #print(self.yBkgn)
-        return self.yBkgn
-
-    def linear(self,slope,x,b):
-        return (slope*x)+b
-
-    def better_shirley(self, x, y):
-        #Not sure where this code came from. May need to cite it later. It has similar structure to the shirley formula described in Herrera's paper
-        self.y = y
-        self.x = x
-        E = x
-        J = y
-
-
-        def integralOne(E, J, B, E1=0, E2=-1):
-            integral = []
-            if E2 < 0:
-                E2 = len(J) + E2
-            integral = sum([J[n] - B[n] for n in range(E,E2)])
-            return integral
-
-        def integralTwo(E, I, B, E1=0, E2=-1):
-            integral = []
-            if E2 < 0:
-                E2 = len(I) + E2
-            integral = sum([I[n] - B[n] for n in range(E1,E2)])
-            return integral
-
-        def getBn(E,I,B,E1=0,E2=-1):
-            I2 = I[E2]
-            I1 = I[E1]
-            value = I2 + (I1 - I2)/(integralTwo(E,I,B,E1,E2))*integralOne(E,I,B,E1,E2)
-            return value
-
-        def iterateOnce(I,B,E1=0,E2=-1):
-            b = [getBn(E,I,B,E1,E2) for E in range(len(I))]
-            return b
-
-        Bn = [0 for i in range(len(J))]
-        Bn = iterateOnce(J,Bn)
-        for i in range(6): #how many iterations it's doing
-            B_temp = Bn
-            Bn = iterateOnce(J,Bn)
-            B_diff = [Bn[j] - B_temp[j] for j in range(len(Bn))] #Could make a check to see if the iterations are getting better. Usually little difference after 7 iterations
-
-        self.yBkgn = Bn
-
-
-        return self.yBkgn
-
-
-
-
-
-
-
-
-
-    def SVSC_shirley(self, x, y):
-
-        self.y = y
-        self.x = x
-        #Should probably declare these items outside of each background type
-        numPeaksUsed = 1
-        maxPeaks = 1
-        numberBackgrounds = 1
-        ma = maxPeaks + numberBackgrounds #will need to change to make it able to use multiple peaks/backgrounds
-        numP = len(self.y)
-        a =[0]*len(self.x) #dont know if we need a anymore?
-
-        #voigt = peak.voigt
-        funcs = y #len = numP -1 #recover initial peak curve --> How to get y points of just one peak??? Use BE range + some delta
-        backgroundFromPeakShirleyFix = [0]*(len(self.y)-1) #not sure why its one less than the number of points
-        SVSC_bkgn = backgroundFromPeakShirleyFix #easier to write --> original name comes from aanalyzer code
-
-        a_old = 0.3
-        a_new = 0.5 #are these initial values too large?
-        old_fit = 10000
-        best_fit = funcs #setting initial best fit --> just equal to y originally
-        SVSC_diff = 1
-        while a_new >= 0: #Iterates until a = 0, but keeps track of std of background to voigt fit. Need to find a better way for the GA to optimize a
-            i = 1
-            for i in range(maxPeaks):#calculates background for each peak then iterates
-                #a_ratio is some parameter ratio --> I think it is the ratio of one parameter of different correlated peaks, unsure as to which parameter is being correlated
-                a_ratio_b4 = a_old #Right now these are just random --> real code: a[ peakShirleyma[ peakShirelyCorrTo] ] / a[ mama[peakShirelyCorrTo] ]
-                a_ratio_after = a_new #defined on line 15233 in PUnit1 --> Values are a[] before and after lfitmod is called
-                peakShirleyBackground = 0.8*a_ratio_b4 + 0.2*a_ratio_after #I think this is supposed to be the scattering factor? Now sure how it is optimized
-                #Maybe for now we should treat peakShirleyBackground as the scattering factor?
-
-                for j in np.arange(numP -2, 0, -1):
-                    SVSC_bkgn[j-1] = self.y[j-1]*-(self.x[j+1]-self.x[j])*peakShirleyBackground + SVSC_bkgn[j] #isnt this just what we already had but now with a wider range?
-                    funcs[j] += SVSC_bkgn[j-1]
-                #should write array in here to store each peak curves background --> will sum these up later
-                i +=1
-
-                iteration_diff = np.subtract(voigt, funcs) #need to change voigt to whatever the curve fit y array is
-                new_fit = np.std(iteration_diff)
-                new_fit_array = funcs
-                if new_fit < old_fit:
-                    old_fit = new_fit
-                    best_fit = new_fit_array
-                a_old = a_new
-                a_new -= 0.01 #slow decrease for now --> NEED TO FIND BETTER WAY TO OPTIMIZE a_new
-                #lfitmod caluculated here --> Calcualtes parameters between iterations: This is what makes the background active
-                #Should we call class Peak here to recalculate the fit with the new background? Active curve fitting
-
-        funcs = best_fit
-        #return funcs #Not sure how we are calling this (self.yBKgn?)
-        self.yBkgn = funcs
-
-        return self.yBkgn
-
-
-
-
-
-    def shirley_Sherwood(self,x,y):
-        #too lazy to find all the x and ys and get rid of the self
-        self.y = y
-        self.x = x
-        #need to make these parameters outside background functions
-        numPeaksUsed = 1
-        maxPeaks = 1
-        numberBackgrounds = 1
-        ma = maxPeaks + numberBackgrounds
-        useIntegralBkgn=True
-        numP = [0]*len(self.y) #we are using this as an array right now but it should just be the number of data points
-        a =[0]*len(self.x)
-
-
-        def iterations(self,x,y):
-            numPeaksUsed = 1
-            maxPeaks = 1
-            numberBackgrounds = 1
-            ma = maxPeaks + numberBackgrounds
-            useIntegralBkgn=True
-            numP = [0]*len(self.y) #we are using this as an array right now but it should just be the number of data points
-            a =[0]*len(self.x)
-            #need this to find the correct data points in which the bakcground will be removed
-            numPointsAroundBackgroundLimitsLocal = 5
-            nRightLocal = numPointsAroundBackgroundLimitsLocal // 2
-            nLeftLocal = numPointsAroundBackgroundLimitsLocal // 2
-
-            yRightLocal = 0
-            yLeftLocal = 0
-
-            for j in range(-(numPointsAroundBackgroundLimitsLocal // 2), numPointsAroundBackgroundLimitsLocal // 2 + 1):
-                #yRightLocal += datos[dataNumber].ModifiedCurve.y[nRightLocal + j]
-                #yLeftLocal += datos[dataNumber].ModifiedCurve.y[nLeftLocal + j]
-                yRightLocal += self.y[len(self.y) - nRightLocal-1 + j]
-                yLeftLocal += self.y[nLeftLocal + j]
-
-            yLeftLocal /= (numPointsAroundBackgroundLimitsLocal // 2) * 2 + 1
-            yRightLocal /= (numPointsAroundBackgroundLimitsLocal // 2) * 2 + 1
-
-
-
-            nLeft = nLeftLocal
-            nRight = len(x)-nRightLocal
-            global yRight
-            yRight = yRightLocal
-            yLeft = yLeftLocal
-
-
-            iterationsIntegralBkgn = 6
-            BkgdCurve = []
-            funcs = numP
-            #funcs = np.zeros((ma, numP))
-
-            if useIntegralBkgn: #from Aanalyzer code line 14867
-                ma += 1 #Need to add in array to store each peak background peak[ma] --> sum in other backgrounds? peak[ma] += funcs...
-                #funcs[ma][numP] = 0
-                #print("K is " + str(self.k))
-                for j in range(nRight-1, nLeft-1, -1):
-                    #funcs[ma][j] = (self.y[j] - yRight[j]) * (self.x[j+1] - self.x[j]) + funcs[ma][j+1]
-                    #print(self.y[j] - yRight)
-                    funcs[j] = (self.y[j] - yRight) *self.k* -(self.x[j+1] - self.x[j]) + funcs[j+1] #assumes x is in KE, not sure if that changes anything
-
-
-                for j in range(0, nLeft):
-                    #funcs[ma][j] = funcs[ma][nLeft]
-                    funcs[j] = yLeft-yRight
-
-                integralma = ma
-
+            # Rechenberg mutation
+            if self.bestDiff < 0.1:
+                self.diffCounter += 1
+            else:
+                self.diffCounter -= 1
+            if (abs(self.diffCounter)/ float(self.genNum)) > 0.2:
+                self.mut_chance += 0.5
+                self.mut_chance = abs(self.mut_chance)
+            elif (abs(self.diffCounter) / float(self.genNum)) < 0.2:
+                self.mut_chance -= 0.5
+                self.mut_chance = abs(self.mut_chance)
+
+            for i in range(self.npops):
+                if random.random()*100 < self.mut_chance:
+                    self.nmutate += 1
+                    self.Populations[i] = self.mutateIndi(i)
+
+        self.logger.info("Mutate Times: " + str(self.nmutate))
+
+    @staticmethod
+    def setPars(individual,split_full_list):
+        """Static Method to set the parameters
+
+        Args:
+            individual (individuals): individuals type
+            split_full_list (list): multidims list containing each peaks type and
+                parameters, and bg peaks.
+        """
+        full_list = copy.copy(split_full_list)
+        # remove the bg
+        bg = full_list.pop()
+        for i in range(len(full_list)):
+            individual.setPeak(i,full_list[i])
+
+    @staticmethod
+    def split_into_x(full_list):
+        """Split a full parameters list into multidmenisonal list
+
+        Args:
+            full_list (list): full list of parameters
+        """
+        split_list = []
+        temp_list = []
+        for i in full_list:
+            if isinstance(i,str) == False:
+                temp_list.append(i)
+            else:
+                temp_list.append(i)
+                split_list.append(temp_list)
+                temp_list = []
+
+        return split_list
+    def mutateIndi_DE(self,mutateIndividuals:list,F:float) -> Individual:
+        """
+        Mutate the individuals using DE mutation
+
+        Args:
+            mutated_individuals (list): Input list of individuals
+            F (float): Mutation Factors
+        """
+        length = len(mutateIndividuals[0])
+        assert all(len(lst) == length for lst in mutateIndividuals)
+
+        x_Pars = mutateIndividuals[0].get_params()
+        y_Pars = mutateIndividuals[1].get_params()
+        z_Pars = mutateIndividuals[2].get_params()
+
+        # Convert to the extracted full list with peaks and BG
+        full_list = []
+        for i in range(len(x_Pars)):
+            if isinstance(x_Pars[i],str) == False:
+                full_list.append(x_Pars[i]  + F*(y_Pars[i]  - z_Pars[i]))
+            else:
+                full_list.append(x_Pars[i])
+
+        split_full_list = XES_GA.split_into_x(full_list)
+        temp_individual = self.generateIndividual()
+        XES_GA.setPars(temp_individual,split_full_list)
+
+        return temp_individual
+
+
+
+    def mutateIndi(self,indi :int) -> Individual:
+        """Mutate the Individual
+
+        Args:
+            indi (int): index of the populations
+
+        Returns:
+            Individual: Mutated Individuals
+        """
+        if self.mut_opt == 0:
+            # Create a new individual with Rechenberg
+            newIndi = self.generateIndividual()
+        # Random pertubutions
+        if self.mut_opt == 1:
+            # Random Pertubutions
+            self.Populations[indi].mutate_(self.mut_chance)
+            newIndi = self.Populations[indi]
+            # Mutate every gene in the Individuals
+
+        if self.mut_opt == 2:
+            n_success = 0
+            og_individual = self.generateIndividual()
+            # Create a new individual with the same parameters
+            og_pars = copy.copy(self.Populations[indi].get_peaks())
+
+            og_individual.setPeaks(og_pars)
+            og_score = self.fitness(og_individual)
+
+            new_individual = self.generateIndividual()
+            mut_score = self.fitness(new_individual)
+
+            T = - self.bestDiff/(np.log(1-(self.genNum/self.ngen)+MIN))
+            if mut_score < og_score:
+                n_success = n_success + 1
+
+                newIndi = new_individual
+            elif np.exp(-(mut_score-og_score)/(T+MIN)) > np.random.uniform():
+                n_success = n_success + 1
+                newIndi = new_individual
+            else:
+                newIndi = og_individual
+
+        return newIndi
+
+    def selectFromPopulation(self):
+        self.parents = []
+
+        select_val = np.minimum(self.n_bestsam,len(self.sorted_population))
+        self.n_recover = 0
+        if len(self.sorted_population) < self.n_bestsam:
+            self.n_recover = self.n_bestsam - len(self.sorted_population)
+        for i in range(select_val):
+            self.parents.append(self.sorted_population[i][0])
+
+    def crossover(self,individual1: Individual, individual2: Individual) -> Individual:
+        """Crossover between two individuals, uniform crossover
+
+        Args:
+            individual1 (Individual): First Individual
+            individual2 (Individual): Second Indivudal
+
+        Returns:
+            Individual: crossovered individual
+        """
+        # TODO: Rewrite this function to use the new code. this is too complicated...
+        #    The `get_params` method needs to calculate a bunch of stuff, but this you have to divided
+        #    FIX: use a dictionary to setup the code.
+
+        child = self.generateIndividual()
+
+        individual1_path = individual1.get_params()
+        individual2_path = individual2.get_params()
+        #print("Ind 1 : " + str(individual1_path))
+        #print("Ind 2 : " + str(individual2_path))
+        temp_path = []
+        dividers = [] # markers where the strings are in the list of params, this indicates where the array switches to a new peak or background
+        #crossover for peak vars
+        for j in range(len(individual1_path)):
+            if (isinstance(individual1_path[j],str)):
+                dividers.append(j)
+            if np.random.randint(0,2) == True:
+                temp_path.append(individual1_path[j])
+            else:
+                temp_path.append(individual2_path[j])
             '''
-            #iterates shirley background
-            if useIntegralBkgn: #from Aanalyzer code line 15140
-                for l in range(iterationsIntegralBkgn):
-                    for j in range(nRight-1, nLeft, -1):
-                        #funcs[integralma][j] = (self.y[j] - yRight[j] - a[integralma] * funcs[integralma][j]) * (self.x[j+1] - self.x[j]) + funcs[integralma][j+1]
-                        funcs[j] = (self.y[j] - yRight - funcs[j]) * (self.x[j+1] - self.x[j]) + funcs[j+1]
-                    for j in range(1, nLeft):
-                        #funcs[integralma][j] = funcs[integralma][nLeft]
-                        funcs[j] = funcs[nLeft]
-                        #calls lfitmod here -->calculates chisq and deletes all parameters
+        for j in range(1):
+            if np.random.randint(0,2) == True:
+                temp_path.append(individual1_path[1][j])
+            else:
+                temp_path.append(individual2_path[1][j])
+        '''
+        #print("Temp Path: " + str(temp_path))
+        temp_peak = []
+        #print(temp_path)
+        divider = 0
+        peakNum = 0
+        bkgnNum = 0
+        for k in range(len(dividers)):
+            for j in range(divider,dividers[k]+1):
+                temp_peak.append(temp_path[j])
+            if i < self.npaths:
+                #print()
+                #print("Child pre-write: " + str(child.get_params()))
+                #print("temp peak : " + str(temp_peak))
+                if child.setPeak(peakNum,temp_peak) == -1:
+                    if bkgnNum<len(background_type):
+                        #print("Bkgn")
+                        child.setBkgn(bkgnNum,temp_peak)
+                        bkgnNum += 1
+                else:
+                    #print("wrote peak")
+                    peakNum +=1
+                #print("Child after write")
+                #print(child.get_params())
+                #print()
+                temp_peak = []
+            divider = j + 1
 
-                    l += 1
-            '''
-            return funcs
-        for i in range(6): #How many iterations it is performing
-            funcs = iterations(self,x,y)
-        self.yBkgn = funcs
-        for i in range(len(self.yBkgn)):
-            self.yBkgn[i] += yRight
+        #print("Child : " + str(child.get_params()))
+        '''
+        child.setPeak(i,temp_path[0],temp_path[1],temp_path[2],temp_path[3])
+        child.get_background(0).set_k(temp_path[4])
+        '''
+        '''
+        print(temp_path)
+        print("Child:")
+        print(child.get_params())
+        exit()
+        '''
+        return child
 
-        return self.yBkgn
-    '''
-    Just barely started on peak shirley, commented out so it wont cause a compilation error
-    def peak_shirley(self,x,y,peak):
-        peak.getY
-    '''
+    def createChildren(self):
+        """
+        Generate Children
+        """
+        self.nextPopulation = []
+        # --- append the breeder ---
+        for i in range(len(self.parents)):
+            self.nextPopulation.append(self.parents[i])
+        # print(len(self.nextPopulation))
+        # --- use the breeder to crossover
+        # print(abs(self.npops-self.n_bestsam)-self.n_lucksam)
+
+        for i in range(abs(self.npops-self.n_bestsam)-self.n_lucksam):
+            par_ind = np.random.choice(len(self.parents),size=2,replace=False)
+            child = self.crossover(self.parents[par_ind[0]],self.parents[par_ind[1]])
+            self.nextPopulation.append(child)
+        # print(len(self.nextPopulation))
+
+        for i in range(self.n_lucksam):
+            self.nextPopulation.append(self.generateIndividual())
+        # print(len(self.nextPopulation))
+
+        for i in range(self.n_recover):
+            self.nextPopulation.append(self.generateIndividual())
+
+        random.shuffle(self.nextPopulation)
+        self.Populations = self.nextPopulation
+
+    def run_verbose_start(self):
+        self.logger.info("-----------Inputs File Stats---------------")
+        self.logger.info(f"{helper.bcolors.BOLD}File{helper.bcolors.ENDC}: {self.data_file}")
+        #self.logger.info(f"{bcolors.BOLD}File Type{bcolors.ENDC}: {self.data_obj._ftype}")
+        self.logger.info(f"{helper.bcolors.BOLD}Fits{helper.bcolors.ENDC}: {peak_type}")
+        # self.logger.info(f"{helper.bcolors.BOLD}Peak Energy Range{helper.bcolors.ENDC}: {self.pars_range}")
+        self.logger.info(f"{helper.bcolors.BOLD}Backgrounds{helper.bcolors.ENDC}: {background_type}")
+        self.logger.info(f"{helper.bcolors.BOLD}File{helper.bcolors.ENDC}: {self.output_path}")
+        self.logger.info(f"{helper.bcolors.BOLD}Population{helper.bcolors.ENDC}: {self.npops}")
+        self.logger.info(f"{helper.bcolors.BOLD}Num Gen{helper.bcolors.ENDC}: {self.ngen}")
+        self.logger.info(f"{helper.bcolors.BOLD}Mutation Opt{helper.bcolors.ENDC}: {self.mut_opt}")
+        self.logger.info("-------------------------------------------")
+
+    def run_verbose_end(self):
+        self.logger.info("-----------Output Stats---------------")
+        # self.logger.info(f"{bcolors.BOLD}Total)
+        self.logger.info(f"{helper.bcolors.BOLD}Total Time(s){helper.bcolors.ENDC}: {round(self.tt,4)}")
+        self.logger.info("-------------------------------------------")
+
+    def run(self):
+        self.run_verbose_start()
+        self.historic = []
+        self.historic.append(self.Populations)
+
+        for i in range(self.ngen):
+            temp_gen = self.next_generation()
+            self.output_generations()
+        #print(self.globBestFit[0].getFit(self.x_array,self.y_array))
+        self.run_verbose_end()
+        # test_y = self.export_paths(self.globBestFit[0])
+        # plt.plot(self.data_obj.get_raw_data()[:,0],self.data_obj.get_raw_data()[:,1],'b-.')
+        # plt.plot(self.x_slice,self.y_slice,'o--',label='data')
+        # plt.plot(self.x_slice,test_y,'r--',label='model')
+        # plt.legend()
+        # plt.show()
+
+    def export_paths(self,indObj):
+        area_list=[]
+        Individual = indObj.get()
+
+        yTotal = np.zeros(len(self.x_slice))
+        plt.figure()
+        for i,paths in enumerate(Individual):
+            y = paths.getY()
+
+            yTotal += y
+            # area = np.trapz(y.flatten(),x=self.x_slice.flatten())
+            # component = paths.get_func(self.x_slice).reshape(-1,1)
+
+            # area_list.append(area)
+
+        Total_area = np.sum(area_list)
+        return yTotal
+
+    def output_generations(self):
+        """
+        Output generations result into two files
+        """
+        with open(self.output_path,"a") as f1:
+            f1.write(str(self.genNum) + "," + str(self.tdiff) + "," +
+                str(self.currBestFit[1]) + "," + str(self.currBestFit[0].get_params()) +")," +
+                str(self.globBestFit[1]) + "," + str(self.globBestFit[0].get_params()) +"\n")
+        with open(self.file_data,"a") as f2:
+            write = csv.writer(f2)
+            bestFit = self.globBestFit[0]
+            #write.writerow((bestFit[i][0], bestFit[i][1], bestFit[i][2]))
+            str_pars = bestFit.get_params()
+            write.writerow(str_pars)
+            f2.write("#################################\n")
 
 
+    def __init__(self):
+        """
+        Steps to Initalize EXAFS
+            EXAFS
+        """
+        # initialize params
+        self.initialize_params()
+        # variables
+        self.initialize_variable()
+        # initialze file paths
+        self.initialize_file_path()
+        # initialize range
+        self.initialize_range()
+        # Generate first generation
+        self.generateFirstGen()
+        # Actually run
+        self.run()
+
+def main():
+    XES_GA()
+
+if __name__ == "__main__":
+    main()
