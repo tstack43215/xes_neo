@@ -70,15 +70,31 @@ class peak():
     def peakFunc(self,x):
         return self.func(x)
 
-    def get(self):
+    def get(self,verbose_type=list):
         params = []
-        #print("The peak type is:", self.peakType.lower())
-        if self.peakType.lower() == 'voigt':
-            params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp] #mutate relies on the order here, so to change this you need to change mutate
-        if self.peakType.lower() == 'double lorentzian':
-            params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp,self.asymmetry]
-            #params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp,self.asymmetry,self.peakType]
-        params.append(self.peakType)
+        # ANDY: Keep the old function of returning list...
+        if verbose_type == list:
+            if self.peakType.lower() == 'voigt':
+                params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp] #mutate relies on the order here, so to change this you need to change mutate
+            if self.peakType.lower() == 'double lorentzian':
+                params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp,self.asymmetry]
+                #params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp,self.asymmetry,self.peakType]
+            params.append(self.peakType)
+
+        elif verbose_type == dict:
+            params = {}
+            if self.peakType.lower() == 'voigt':
+                params['bindingEnergy'] = self.bindingEnergy
+                params['gaussian'] = self.gaussian
+                params['lorentz'] = self.lorentz
+                params['amp'] = self.amp
+            if self.peakType.lower() == 'double lorentzian':
+                params['bindingEnergy'] = self.bindingEnergy
+                params['gaussian'] = self.gaussian
+                params['lorentz'] = self.lorentz
+                params['amp'] = self.amp
+                params['asymmetry'] = self.asymmetry
+                #params = [self.bindingEnergy,self.gaussian,self.lorentz,self.amp,self.asymmetry,self.peakType]
         '''
         else:
             if len(params) == 0:
@@ -232,7 +248,7 @@ class peak():
             self.gaussian = np.clip(self.gaussian,self.paramRange['Gaussian'][0],self.paramRange['Gaussian'][1])
             self.lorentz = np.clip(self.lorentz,self.paramRange['Lorentzian'][0],self.paramRange['Lorentzian'][1])
             self.amp = np.clip(self.amp,self.paramRange['Amplitude'][0],self.paramRange['Amplitude'][1])
-            
+
         elif self.peakType.lower() == 'double lorentzian':
             peakEnergy_min = np.min(self.paramRange['Peak Energy Guess'])
             peakEnergy_max = np.max(self.paramRange['Peak Energy Guess'])
@@ -320,11 +336,11 @@ class peak():
         # Calculate the Gaussian component
         if self.gaussian == 0:
             self.gaussian = .01
-        
+
 
         data_range= max(x) - min(x)
         data_range /= 2
-        
+
         middle = min(x)+data_range
         offset = self.bindingEnergy-middle
         num_points = len(x)
@@ -332,18 +348,18 @@ class peak():
 
         #gaussian = np.exp(-np.power(x - self.bindingEnergy, 2) / (2 * np.power(self.gaussian, 2))) / (self.gaussian * np.sqrt(2 * np.pi))
         gaussian = np.exp(-np.power(x_values, 2) / ((np.power(self.gaussian, 2)))) / (self.gaussian * np.sqrt(np.pi)) #Took away 2*np.power(self.gaussian,2) and np.sqrt(2*np.pi)
-        
+
         # Calculate the Lorentzian component
-        
+
         #Added +offset to all Lorentzian functions instead of Gauss --> It has to be inside the equation to make the leftside of the peak more lorentzian
         numP = len(x)
         HWHM = self.lorentz/2
         if HWHM == 0:
         	HWHM = .01
-        
+
         #print("The asymmetry is:", self.asymmetry)
-        
-        lorentzLeft = HWHM*self.asymmetry #Width of left side of peak due to asymmetry 
+
+        lorentzLeft = HWHM*self.asymmetry #Width of left side of peak due to asymmetry
         #z = np.arange(-xRange, xRange+stepSize,.05)
         yDoubleL = [0]*numP
         #Double Lorentzian formula taken from Aanalyzer code in PUnit1 line 7157
@@ -352,13 +368,13 @@ class peak():
                 yDoubleL[i] = 1 / ( 1 + np.power( (x_values[i] + offset)/lorentzLeft, 2 ) ) / np.pi
             else:
                 yDoubleL[i] = 1 / ( 1 + np.power( (x_values[i] + offset)/HWHM, 2 ) ) / np.pi
-            
+
             #yDoubleL[2*i] = 0;
-        lorentzian = yDoubleL 
-        
-        
-        #lorentzian = (self.amp * self.asymmetry / (2 * np.pi)) / (np.power(z, 2) + np.power(self.lorentz * self.asymmetry / 2, 2)) #Double Lorentzian 
-        
+        lorentzian = yDoubleL
+
+
+        #lorentzian = (self.amp * self.asymmetry / (2 * np.pi)) / (np.power(z, 2) + np.power(self.lorentz * self.asymmetry / 2, 2)) #Double Lorentzian
+
         # Perform the convolution using the Fourier transform
         convolve = scipy.signal.convolve(gaussian,lorentzian,'same')
 
@@ -366,10 +382,10 @@ class peak():
         #scale = max(doubleLorentz)
         #for i in range(len(doubleLorentz)):
             #doubleLorentz[i] *= (self.amp/scale)
-        
+
         doubleLorentz = convolve * self.amp
         self.peak_y = doubleLorentz
-        
+
         return doubleLorentz
 
 
@@ -433,14 +449,27 @@ class background():
 
 
     #Make sure to add in each background here
-    def get(self):
-        if self.bkgnType == 'Shirley-Sherwood' or self.bkgnType == 'SVSC_shirley':
-            return [self.k, self.bkgnType]
-        elif self.bkgnType.lower() == 'linear':
-            return [self.background,self.bkgnType]
-        elif self.bkgnType == 'Exponential':
-            return [self.bkgnType]
-
+    def get(self,verbose_type=list):
+        if verbose_type == list:
+            if self.bkgnType == 'Shirley-Sherwood' or self.bkgnType == 'SVSC_shirley':
+                return [self.k, self.bkgnType]
+            elif self.bkgnType.lower() == 'linear':
+                return [self.background,self.bkgnType]
+            elif self.bkgnType == 'Exponential':
+                return [self.bkgnType]
+        if verbose_type == dict:
+            params = {}
+            params['bkgnType'] = self.bkgnType
+            if self.bkgnType.lower() == 'linear':
+                params['background'] = self.background
+            return params
+        # elif verbose_type == dict:
+        #     if self.bkgnType == 'Shirley-Sherwood' or self.bkgnType == 'SVSC_shirley':
+        #         return []
+        #     elif self.bkgnType.lower() == 'linear':
+        #         return [self.background,self.bkgnType]
+        #     elif self.bkgnType == 'Exponential':
+        #         return [self.bkgnType]
 
     def getParams(self):
         temp_dict = {}

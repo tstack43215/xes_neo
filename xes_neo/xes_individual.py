@@ -97,22 +97,29 @@ class Individual():
         """
         return (self.peakArr + self.bkgnArr)
 
-    def get_params(self):
-        params = []
-        #fetches all the params as independent lists
-        for i in range(len(self.peakArr)):
-            params.append(self.peakArr[i].get())
-        for i in range(len(self.bkgnArr)):
-            params.append(self.bkgnArr[i].get())
+    def get_params(self,verbose_type=list):
+        if verbose_type == list:
+            params = []
+            #fetches all the params as independent lists
+            for i in range(len(self.peakArr)):
+                params.append(self.peakArr[i].get())
+            for i in range(len(self.bkgnArr)):
+                params.append(self.bkgnArr[i].get())
 
-        #puts it in one array
-        for i in range(1,len(params)):
-            for k in range(len(params[i])):
-                params[0].append(params[i][k])
+            #puts it in one array
+            for i in range(1,len(params)):
+                for k in range(len(params[i])):
+                    params[0].append(params[i][k])
 
-        #print("Params : " + str(params[0]))
-        return params[0]
+            #print("Params : " + str(params[0]))
+            return params[0]
+        elif verbose_type == dict:
+            params = {}
+            for i in range(len(self.peakArr)):
+                temp_dicts = self.peakArr[i].get(verbose_type=dict)
+                params[f'peak_{i}'] = temp_dicts
 
+            return params
     def get_peak(self,i:int):
         """Get specific peaks
 
@@ -203,3 +210,15 @@ class Individual():
 
         for i in self.peakArr:
             i.checkOutbound()
+
+
+    def __getitem__(self,i):
+        """Gets the ith peaks
+
+        Args:
+            i (int): index of the parameter
+
+        Returns:
+            float: value of the parameter
+        """
+        return self.peakArr[i]
