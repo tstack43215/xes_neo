@@ -296,10 +296,10 @@ class peak():
         yDoubleL = [0]*numP
         #Double Lorentzian formula taken from Aanalyzer code in PUnit1 line 7157
         for i in np.arange(1, numP, 1):
-            if x[i] < offset:
-                yDoubleL[i] = 1 / ( 1 + np.power( (x_values[i] + offset)/lorentzLeft, 2 ) ) / np.pi
+            if x[i] < self.bindingEnergy:
+                yDoubleL[i] = 1 / ( 1 + np.power( (x_values[i] - offset)/lorentzLeft, 2 ) ) / np.pi
             else:
-                yDoubleL[i] = 1 / ( 1 + np.power( (x_values[i] + offset)/HWHM, 2 ) ) / np.pi
+                yDoubleL[i] = 1 / ( 1 + np.power( (x_values[i] - offset)/HWHM, 2 ) ) / np.pi
             
             #yDoubleL[2*i] = 0;
         lorentzian = yDoubleL 
