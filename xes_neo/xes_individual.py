@@ -96,6 +96,19 @@ class Individual():
 
         return yFit
 
+    def getSpecificFit(self,x,peak_index):
+        yFit = [0]*len(x)
+        if self.SVSC_toggle:
+            peak_y,svsc_y = self.peakArr[peak_index].getY(x)
+            yFit += peak_y
+            yFit += svsc_y
+        else:
+            yFit += self.peakArr[peak_index].getY(x)
+        # for i in range(self.nBackgrounds):
+        #     yFit += self.bkgnArr[i].getY(x,y)
+
+        return yFit
+
     def get(self):
         """
         Get the whole set
