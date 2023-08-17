@@ -27,6 +27,8 @@ class Individual():
         self.peakArr = [None]* self.nPeaks
         self.bkgnArr = [None] * self.nBackgrounds
 
+        self.peakDict = {}
+
         """
         the Binding Energy needs to be personalized
         we take the range, which right now is something like (0,.2), i.e. the allowed variance in BE
@@ -67,6 +69,13 @@ class Individual():
         for i in range(self.nBackgrounds):
             self.bkgnArr[i] = background(pars_range,backgrounds[i])
 
+
+        # TODO: change it to dictionary
+        for i in range(self.nPeaks):
+            self.peakDict[f'peak_{i}'] = self.peakArr[i]
+
+        for i in range(self.nBackgrounds):
+            self.peakDict[f'bkgn_{i}'] = self.bkgnArr[i]
 
 
     def add_peak(self,peakType):
@@ -118,7 +127,9 @@ class Individual():
             for i in range(len(self.peakArr)):
                 temp_dicts = self.peakArr[i].get(verbose_type=dict)
                 params[f'peak_{i}'] = temp_dicts
-
+            for i in range(len(self.bkgnArr)):
+                temp_dicts = self.bkgnArr[i].get(verbose_type=dict)
+                params[f'bkgn_{i}'] = temp_dicts
             return params
     def get_peak(self,i:int):
         """Get specific peaks
@@ -222,3 +233,26 @@ class Individual():
             float: value of the parameter
         """
         return self.peakArr[i]
+
+
+    def getPeaksType(self):
+        """Gets the type of the peaks
+
+        Returns:
+            list: list of the peak types
+        """
+        return [i.peakType for i in self.peakArr]
+
+    def setParams(self,params,paramType=list):
+        """Sets the parameters of the individual
+
+        Args:
+            params (list): list of parameters
+        """
+        # for i in range(len(self.peakArr)):
+        #     self.peakArr[i].set(params[i],paramType=paramType)
+        # for i in range(len(self.bkgnArr)):
+        #     self.bkgArr[i].set(params[i],paramType=paramType)
+        for i in self.peakDict:
+            self.peakDict[i].set(params[i],paramType=paramType)
+

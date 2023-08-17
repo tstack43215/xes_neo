@@ -83,6 +83,7 @@ class peak():
 
         elif verbose_type == dict:
             params = {}
+            params['peakType'] = self.peakType.lower()
             if self.peakType.lower() == 'voigt':
                 params['bindingEnergy'] = self.bindingEnergy
                 params['gaussian'] = self.gaussian
@@ -164,7 +165,7 @@ class peak():
         self.amp = amp
     '''
 
-    def set(self,params):
+    def set(self,params,paramType=list):
         """
         This is the main differentiator between the fit in gui and xpsfolders
         The set function takes in a list of params, and should expect them to come in the same order that they were pushed out
@@ -172,14 +173,16 @@ class peak():
 
         """
         if(self.peakType.lower() == "voigt"):
-            self.set_voigt(params)
+            self.set_voigt(params,paramType = paramType)
         elif(self.peakType.lower() == "double lorentzian"):
-            self.set_doubleLorentz(params)
+            self.set_doubleLorentz(params,paramType = paramType)
+
 
     def setGaussian(self,newVal):
         self.gaussian = newVal
     def setLorentzian(self,newVal):
         self.lorentz = newVal
+
     def setAmplitude(self,newVal):
         self.amp = newVal
     def setAsymmetry(self,newVal):
@@ -187,18 +190,31 @@ class peak():
     def setBindingEnergy(self,newVal):
         self.bindingEnergy = newVal
 
-    def set_voigt(self,paramList):
-        self.bindingEnergy = paramList[0]
-        self.gaussian = paramList[1]
-        self.lorentz = paramList[2]
-        self.amp = paramList[3]
+    def set_voigt(self,paramList,paramType=list):
+        if paramType == list:
+            self.bindingEnergy = paramList[0]
+            self.gaussian = paramList[1]
+            self.lorentz = paramList[2]
+            self.amp = paramList[3]
+        elif paramType == dict:
+            self.bindingEnergy = paramList['bindingEnergy']
+            self.gaussian = paramList['gaussian']
+            self.lorentz = paramList['lorentz']
+            self.amp = paramList['amp']
 
-    def set_doubleLorentz(self,paramList):
-        self.bindingEnergy = paramList[0]
-        self.gaussian = paramList[1]
-        self.lorentz = paramList[2]
-        self.amp = paramList[3]
-        self.asymmetry = paramList[4]
+    def set_doubleLorentz(self,paramList,paramType=list):
+        if paramType == list:
+            self.bindingEnergy = paramList[0]
+            self.gaussian = paramList[1]
+            self.lorentz = paramList[2]
+            self.amp = paramList[3]
+            self.asymmetry = paramList[4]
+        elif paramType == dict:
+            self.bindingEnergy = paramList['bindingEnergy']
+            self.gaussian = paramList['gaussian']
+            self.lorentz = paramList['lorentz']
+            self.amp = paramList['amp']
+            self.asymmetry = paramList['asymmetry']
 
 
 
@@ -229,6 +245,7 @@ class peak():
     def mutateSplitting(self,chance):
         if random.random()*100 < chance:
             self.s_o_split = np.random.choice(self.s_o_splittingRange)
+
     def mutateAsymmetry(self,chance):
         if random.random()*100 < chance:
             self.asymmetry = np.random.choice(self.asymmetryRange)
@@ -260,6 +277,7 @@ class peak():
             self.amp = np.clip(self.amp,self.paramRange['Amplitude'][0],self.paramRange['Amplitude'][1])
         else:
             raise Exception ('SVSC not implemented for checkforBound')
+
 
 
     def voigtFunc(self,x):
@@ -355,7 +373,7 @@ class peak():
         numP = len(x)
         HWHM = self.lorentz/2
         if HWHM == 0:
-        	HWHM = .01
+            HWHM = .01
 
         #print("The asymmetry is:", self.asymmetry)
 
@@ -454,7 +472,7 @@ class background():
             if self.bkgnType == 'Shirley-Sherwood' or self.bkgnType == 'SVSC_shirley':
                 return [self.k, self.bkgnType]
             elif self.bkgnType.lower() == 'linear':
-                return [self.background,self.bkgnType]
+                return [self.background,self.bkgnType,self.slope]
             elif self.bkgnType == 'Exponential':
                 return [self.bkgnType]
         if verbose_type == dict:
@@ -462,6 +480,7 @@ class background():
             params['bkgnType'] = self.bkgnType
             if self.bkgnType.lower() == 'linear':
                 params['background'] = self.background
+                params['slope'] = self.slope
             return params
         # elif verbose_type == dict:
         #     if self.bkgnType == 'Shirley-Sherwood' or self.bkgnType == 'SVSC_shirley':
@@ -473,17 +492,24 @@ class background():
 
     def getParams(self):
         temp_dict = {}
+        temp_dict['type'] = self.bkgnType
         if self.bkgnType == 'Shirley-Sherwood' or self.bkgnType == 'SVSC_shirley':
             temp_dict['k'] = self.k
-            temp_dict['type'] = self.bkgnType
         elif self.bkgnType.lower() == 'linear':
             temp_dict['background'] = self.background
-            temp_dict['type'] = self.bkgnType
         elif self.bkgnType == 'Exponential':
             # return [self.bkgnType]
-            temp_dict['type'] = self.bkgnType
-
+            pass
         return temp_dict
+
+
+    def set(self,params,paramType=list):
+        if self.bkgnType.lower() == 'Shirley-Sherwood' or self.bkgnType.lower() == 'SVSC_shirley':
+            self.set_shirley_sherwood(params,paramType)
+        elif self.bkgnType.lower() == 'linear':
+            self.set_linear(params,paramType)
+        elif self.bkgnType == 'Exponential':
+            pass
 
     def getType(self):
         return self.bkgnType
@@ -491,12 +517,21 @@ class background():
     def set_k(self,newVal):
         self.k = newVal
 
-    def set_shirley_sherwood(self,params):
-        self.k = params[0]
+    def set_shirley_sherwood(self,params,paramType):
+        if paramType == 'list':
+            self.k = params[0]
+        elif paramType == 'dict':
+            self.k = params['k']
 
-
-    def set_linear(self,paramArr):
-        self.background = paramArr[0]
+    def set_linear(self,paramArr,paramType):
+        if paramType == 'list':
+            self.background = paramArr[0]
+            self.slope = paramArr[1]
+        # self.background = paramArr[0]
+        elif paramType == 'dict':
+            self.bkgnType = paramArr['bkgnType']
+            self.background = paramArr['background']
+            self.slope = paramArr['slope']
 
 
     def exponential_bkgn(self,x,y):
@@ -529,8 +564,6 @@ class background():
 
         self.yBkgn = funcs
         return self.yBkgn
-
-
 
 
 

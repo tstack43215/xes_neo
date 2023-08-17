@@ -524,6 +524,9 @@ class XES_GA:
         for i in range(select_val):
             self.parents.append(self.sorted_population[i][0])
 
+
+    def
+
     def crossover(self,individual1: Individual, individual2: Individual) -> Individual:
         """Crossover between two individuals, uniform crossover
 
