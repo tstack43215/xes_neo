@@ -524,10 +524,14 @@ class XES_GA:
         for i in range(select_val):
             self.parents.append(self.sorted_population[i][0])
 
+    @staticmethod
+    def crossoverParams(val1,val2):
+        if np.random.randint(0,2):
+            return val1
+        else:
+            return val2
 
-    def
-
-    def crossover(self,individual1: Individual, individual2: Individual) -> Individual:
+    def crossover(self,ind1: Individual, ind2: Individual) -> Individual:
         """Crossover between two individuals, uniform crossover
 
         Args:
@@ -537,72 +541,103 @@ class XES_GA:
         Returns:
             Individual: crossovered individual
         """
-        # TODO: Rewrite this function to use the new code. this is too complicated...
-        #    The `get_params` method needs to calculate a bunch of stuff, but this you have to divided
-        #    FIX: use a dictionary to setup the code.
+        assert ind1.getPeaksType() == ind2.getPeaksType()
+
+        param_1 = ind1.get_params(verbose_type=dict)
+        param_2 = ind2.get_params(verbose_type=dict)
+
+        newParam = {}
+        for i in param_1:
+            temp_peakParms = {}
+
+            for param,val in param_1[i].items():
+
+                temp_peakParms[param] = XES_GA.crossoverParams(param_1[i][param],param_2[i][param])
+            newParam[i] = temp_peakParms
 
         child = self.generateIndividual()
+        child.setParams(newParam,paramType=dict)
 
-        individual1_path = individual1.get_params()
-        individual2_path = individual2.get_params()
-        #print("Ind 1 : " + str(individual1_path))
-        #print("Ind 2 : " + str(individual2_path))
-        temp_path = []
-        dividers = [] # markers where the strings are in the list of params, this indicates where the array switches to a new peak or background
-        #crossover for peak vars
-        for j in range(len(individual1_path)):
-            if (isinstance(individual1_path[j],str)):
-                dividers.append(j)
-            if np.random.randint(0,2) == True:
-                temp_path.append(individual1_path[j])
-            else:
-                temp_path.append(individual2_path[j])
-            '''
-        for j in range(1):
-            if np.random.randint(0,2) == True:
-                temp_path.append(individual1_path[1][j])
-            else:
-                temp_path.append(individual2_path[1][j])
-        '''
-        #print("Temp Path: " + str(temp_path))
-        temp_peak = []
-        #print(temp_path)
-        divider = 0
-        peakNum = 0
-        bkgnNum = 0
-        for k in range(len(dividers)):
-            for j in range(divider,dividers[k]+1):
-                temp_peak.append(temp_path[j])
-            if i < self.npaths:
-                #print()
-                #print("Child pre-write: " + str(child.get_params()))
-                #print("temp peak : " + str(temp_peak))
-                if child.setPeak(peakNum,temp_peak) == -1:
-                    if bkgnNum<len(background_type):
-                        #print("Bkgn")
-                        child.setBkgn(bkgnNum,temp_peak)
-                        bkgnNum += 1
-                else:
-                    #print("wrote peak")
-                    peakNum +=1
-                #print("Child after write")
-                #print(child.get_params())
-                #print()
-                temp_peak = []
-            divider = j + 1
-
-        #print("Child : " + str(child.get_params()))
-        '''
-        child.setPeak(i,temp_path[0],temp_path[1],temp_path[2],temp_path[3])
-        child.get_background(0).set_k(temp_path[4])
-        '''
-        '''
-        print(temp_path)
-        print("Child:")
-        print(child.get_params())
-        exit()
-        '''
+        # return newParam
         return child
+
+
+    # def crossover(self,individual1: Individual, individual2: Individual) -> Individual:
+    #     """Crossover between two individuals, uniform crossover
+
+    #     Args:
+    #         individual1 (Individual): First Individual
+    #         individual2 (Individual): Second Indivudal
+
+    #     Returns:
+    #         Individual: crossovered individual
+    #     """
+    #     # TODO: Rewrite this function to use the new code. this is too complicated...
+    #     #    The `get_params` method needs to calculate a bunch of stuff, but this you have to divided
+    #     #    FIX: use a dictionary to setup the code.
+
+    #     child = self.generateIndividual()
+
+    #     individual1_path = individual1.get_params()
+    #     individual2_path = individual2.get_params()
+    #     #print("Ind 1 : " + str(individual1_path))
+    #     #print("Ind 2 : " + str(individual2_path))
+    #     temp_path = []
+    #     dividers = [] # markers where the strings are in the list of params, this indicates where the array switches to a new peak or background
+    #     #crossover for peak vars
+    #     for j in range(len(individual1_path)):
+    #         if (isinstance(individual1_path[j],str)):
+    #             dividers.append(j)
+    #         if np.random.randint(0,2) == True:
+    #             temp_path.append(individual1_path[j])
+    #         else:
+    #             temp_path.append(individual2_path[j])
+    #         '''
+    #     for j in range(1):
+    #         if np.random.randint(0,2) == True:
+    #             temp_path.append(individual1_path[1][j])
+    #         else:
+    #             temp_path.append(individual2_path[1][j])
+    #     '''
+    #     #print("Temp Path: " + str(temp_path))
+    #     temp_peak = []
+    #     #print(temp_path)
+    #     divider = 0
+    #     peakNum = 0
+    #     bkgnNum = 0
+    #     for k in range(len(dividers)):
+    #         for j in range(divider,dividers[k]+1):
+    #             temp_peak.append(temp_path[j])
+    #         if i < self.npaths:
+    #             #print()
+    #             #print("Child pre-write: " + str(child.get_params()))
+    #             #print("temp peak : " + str(temp_peak))
+    #             if child.setPeak(peakNum,temp_peak) == -1:
+    #                 if bkgnNum<len(background_type):
+    #                     #print("Bkgn")
+    #                     child.setBkgn(bkgnNum,temp_peak)
+    #                     bkgnNum += 1
+    #             else:
+    #                 #print("wrote peak")
+    #                 peakNum +=1
+    #             #print("Child after write")
+    #             #print(child.get_params())
+    #             #print()
+    #             temp_peak = []
+    #         divider = j + 1
+
+    #     #print("Child : " + str(child.get_params()))
+    #     '''
+    #     child.setPeak(i,temp_path[0],temp_path[1],temp_path[2],temp_path[3])
+    #     child.get_background(0).set_k(temp_path[4])
+    #     '''
+    #     '''
+    #     print(temp_path)
+    #     print("Child:")
+    #     print(child.get_params())
+    #     exit()
+    #     '''
+    #     return child
 
     def createChildren(self):
         """
