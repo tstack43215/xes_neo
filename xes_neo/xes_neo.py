@@ -32,6 +32,11 @@ class XES_GA:
         print("Initializing Params")
         self.intervalK = 0.05
         self.tol = np.finfo(np.float64).resolution
+        self.printgraph = printgraph
+
+        if self.printgraph:
+                self.fig = plt.figure()
+                self.ax = self.fig.add_subplot(111)
 
     def initialize_variable(self):
         """Initialize variables
@@ -309,7 +314,7 @@ class XES_GA:
         self.logger.info("Time: "+ str(round(self.tdiff,5))+ "s")
 
     def verboseGeneration(self):
-        """Print the best fit in a generation.
+        """Print the best fit in a generation and
         """
         with np.printoptions(precision=5, suppress=True):
             self.logger.info("Different from last best fit: " +str(self.bestDiff))
@@ -319,6 +324,15 @@ class XES_GA:
             # self.logger.info("NanCounter: " + str(self.nan_counter))
             self.logger.info("History Best Indi:\n" + str((self.globBestFit[0].get_params())))
 
+        if self.printgraph:
+            self.ax.plot(self.x_array,self.y_array,'b--',label='Data')
+            self.ax.plot(self.x_array,self.globBestFit[0].getFit(self.x_array,self.y_array),'k',label='Best Fit')
+            for i in range(self.npaths):
+                self.ax.plot(self.x_array,self.globBestFit[0].getSpecificFit(self.x_array,i),label=f'Peak_{i}')
+            self.ax.legend()
+            plt.show(block=False)
+            plt.pause(0.001)
+            plt.cla()
 
     def crossoverPopulation(self):
         self.trialPopulations = []
