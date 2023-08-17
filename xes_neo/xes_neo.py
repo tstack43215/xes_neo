@@ -277,13 +277,6 @@ class XES_GA:
         if self.currBestFit[1] < self.globBestFit[1]:
             self.globBestFit = self.currBestFit
 
-        with np.printoptions(precision=5, suppress=True):
-            self.logger.info("Different from last best fit: " +str(self.bestDiff))
-            self.logger.info(helper.bcolors.BOLD + "Best fit: " + helper.bcolors.OKBLUE + str(self.currBestFit[1]) + helper.bcolors.ENDC)
-            self.logger.info("Best fit combination:\n" + str((self.sorted_population[0][0].get_params())))
-            self.logger.info(helper.bcolors.BOLD + "History Best: " + helper.bcolors.OKBLUE + str(self.globBestFit[1]) + helper.bcolors.ENDC)
-            self.logger.info("NanCounter: " + str(self.nan_counter))
-            self.logger.info("History Best Indi:\n" + str((self.globBestFit[0].get_params())))
 
         # nextBreeders = self.selectFromPopulation()
 
@@ -311,7 +304,21 @@ class XES_GA:
         self.et = timecall()
         self.tdiff = self.et - self.st
         self.tt = self.tt + self.tdiff
+
+        self.verboseGeneration()
         self.logger.info("Time: "+ str(round(self.tdiff,5))+ "s")
+
+    def verboseGeneration(self):
+        """Print the best fit in a generation.
+        """
+        with np.printoptions(precision=5, suppress=True):
+            self.logger.info("Different from last best fit: " +str(self.bestDiff))
+            self.logger.info(helper.bcolors.BOLD + "Best fit: " + helper.bcolors.OKBLUE + str(self.currBestFit[1]) + helper.bcolors.ENDC)
+            self.logger.info("Best fit combination:\n" + str((self.sorted_population[0][0].get_params())))
+            self.logger.info(helper.bcolors.BOLD + "History Best: " + helper.bcolors.OKBLUE + str(self.globBestFit[1]) + helper.bcolors.ENDC)
+            # self.logger.info("NanCounter: " + str(self.nan_counter))
+            self.logger.info("History Best Indi:\n" + str((self.globBestFit[0].get_params())))
+
 
     def crossoverPopulation(self):
         self.trialPopulations = []
@@ -439,6 +446,7 @@ class XES_GA:
                 temp_list = []
 
         return split_list
+
     def mutateIndi_DE(self,mutateIndividuals:list,F:float) -> Individual:
         """
         Mutate the individuals using DE mutation

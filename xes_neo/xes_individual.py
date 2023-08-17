@@ -4,9 +4,6 @@ Created the file, left out set peak to manually set a peak and its
 parameters, it seems non essential for now
 -Evan Restuccia (evan@restuccias.com)
 """
-from tkinter import N
-
-from matplotlib.bezier import get_parallels
 from .xes_fit import peak,background
 
 class Individual():
@@ -69,8 +66,7 @@ class Individual():
         for i in range(self.nBackgrounds):
             self.bkgnArr[i] = background(pars_range,backgrounds[i])
 
-
-        # TODO: change it to dictionary
+        # Create dictionary of peaks and backgrounds
         for i in range(self.nPeaks):
             self.peakDict[f'peak_{i}'] = self.peakArr[i]
 
@@ -201,11 +197,6 @@ class Individual():
         for i in range(self.npaths):
             self.Population[i].verbose()
 
-    ''' Could be useful later I just dont want to write it
-    def set_peak(self,i,A,h_f,m):
-        self.Population[i].set(A,h_f,m)
-    '''
-
     def __len__(self):
         """Returns the length of the independent parameters
 
@@ -249,10 +240,6 @@ class Individual():
         Args:
             params (list): list of parameters
         """
-        # for i in range(len(self.peakArr)):
-        #     self.peakArr[i].set(params[i],paramType=paramType)
-        # for i in range(len(self.bkgnArr)):
-        #     self.bkgArr[i].set(params[i],paramType=paramType)
         for i in self.peakDict:
             self.peakDict[i].set(params[i],paramType=paramType)
 
