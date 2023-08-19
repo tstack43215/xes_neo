@@ -348,9 +348,9 @@ class xes_analysis():
             difference = (yTotal[j] - self.y[j])
             sigma = np.sqrt(self.y[j])
             
-            if difference > 0 
+            if difference > 0:
 
-            	if difference >= sigma
+            	if difference >= sigma:
             		penalty = 10*sigma
             
             loss = loss + (difference**2)*sigma + penalty*sigma
