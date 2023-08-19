@@ -351,7 +351,7 @@ class xes_analysis():
             if difference > 0:
 
             	if difference >= sigma:
-            		penalty = 100*sigma
+            		penalty = 1000*sigma
             
             loss = loss + (difference**2)*sigma + penalty*sigma
         # if loss == np.nan:
