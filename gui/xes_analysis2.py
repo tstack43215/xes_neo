@@ -341,7 +341,19 @@ class xes_analysis():
 
            # loss = loss + (yTotal[j]*self.x_array[j]**2 - self.y_array[j]* self.x_array[j]**2 )**2
             #loss = loss + (((yTotal[j]- self.y[j])**2) * self.y[j])
-            loss = loss + ((yTotal[j]- self.y[j])**2)*np.sqrt(self.y[j])
+            
+            #include a penalty for going outside of the spectral envelope
+            penalty = 0
+            
+            difference = (yTotal[j] - self.y[j])
+            sigma = np.sqrt(self.y[j])
+            
+            if difference > 0 
+
+            	if difference >= sigma
+            		penalty = 10*sigma
+            
+            loss = loss + (difference**2)*sigma + penalty*sigma
         # if loss == np.nan:
             # print(individual[0].verbose())
         return loss
