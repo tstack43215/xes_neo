@@ -339,6 +339,14 @@ class peak():
         #6460-6505
 
         #convolution = np.real(np.fft.ifft(np.fft.fft(gaussian) * np.fft.fft(lorentzian)))
+        
+        # Scale the intensity of the peak, does automatically right now based on center, this will need to be changed
+        convolve_max = max(convolve)
+        if(convolve_max != 0):
+             #peakAmp = self.amp/convolve_max
+             convolve = convolve / convolve_max
+        else:
+             convolve = 0
 
         # TODO: Scale the intensity of the peak, does automatically right now based on center, this will need to be changed
         voigt = convolve * self.amp
@@ -400,6 +408,14 @@ class peak():
         #scale = max(doubleLorentz)
         #for i in range(len(doubleLorentz)):
             #doubleLorentz[i] *= (self.amp/scale)
+            
+        # Scale the intensity of the peak, does automatically right now based on center, this will need to be changed
+        convolve_max = max(convolve)
+        if(convolve_max != 0):
+             #peakAmp = self.amp/convolve_max
+             convolve = convolve / convolve_max
+        else:
+             convolve = 0
 
         doubleLorentz = convolve * self.amp
         self.peak_y = doubleLorentz
