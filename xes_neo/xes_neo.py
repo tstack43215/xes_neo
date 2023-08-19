@@ -227,7 +227,7 @@ class XES_GA:
             
             if difference > 0:
 
-            	if difference >= sigma:
+            	if difference >= 0.5*sigma:
             		penalty = 1000*sigma
             
             loss = loss + (difference**2)*sigma + penalty*sigma
