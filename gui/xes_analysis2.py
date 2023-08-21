@@ -106,6 +106,8 @@ class xes_analysis():
 
         plot_err(bool) whether or not to plot the error
         passin(num?) Optional- the best fit
+
+        After extracting data, evaluates all individuals and assigns self.best_ind to the best chisqr individual
         """
         #gets the parameters and best fit if they are not passed in
         if passin == '':
@@ -134,15 +136,83 @@ class xes_analysis():
             #print(stack)
             bestFit,err = self.construct_bestfit_err_mat(stack,plot_err)
             best_Fit = np.reshape(copy.deepcopy(bestFit),(1, -1))
+            
             #print(best_Fit)
         else:
             err = np.zeros([self.number_of_parameters,1])
+            err = passin
             bestFit = np.zeros([self.number_of_parameters,1])
             best_Fit = passin
         
         self.bestFit = best_Fit.flatten()
-        self.err = err
+        self.err = err.flatten()
         #should print error here later, but need to customize it to number of params
+        self.err = list(self.err)
+        new_err = []
+        for i in range(len(self.err)):
+            new_err.append(round(self.err[i],2))
+        #print("Parameter Error values are: ", new_err)
+
+        
+        
+        error_array = []
+        peaks = []
+        bkgns = []
+        for i,Type in enumerate(self.types):
+            if Type.lower().strip() in self.peaks:
+                peaks.append(Type)
+            if Type.lower().strip() in self.bkgns:
+                bkgns.append(Type)
+        error_length = self.number_of_parameters - len(peaks) - len(bkgns)
+        
+        #print(new_err)
+
+        #Since error values come in one large array, I created a series of if and for statements that split up the array into the seperate peaks and sums them into an array of arrays 
+        #The background errors go to their own array 
+        l = 0
+        count = 1  
+        for peak in peaks: #iterates for as many peaks there are 
+            
+            error = []
+            if(peak == 'Voigt'):
+                k = 4*count  
+                
+        
+                
+                if count == 1: #Different if it is the first element in the array because of the 0th place in the array
+                    for j in np.arange(l, k):
+                        error.append(new_err[j])
+                else: 
+                    for j in np.arange(l, k+1):
+                        error.append(new_err[j])
+                l = k
+            
+            elif(peak == 'Double Lorentzian'):
+                k = 5*count 
+
+
+                if count == 1:
+                    for j in np.arange(l, k):
+                        error.append(new_err[j])
+                else: 
+                    for j in np.arange(l, k+1):
+                        error.append(new_err[j])
+                l = k
+            
+           
+            
+            error_array.append(error)
+            count +=1
+
+        error_bkgns = []
+        bkgn_len = len(new_err) - len(bkgns)
+        print(new_err)
+        for i in reversed(range(bkgn_len, len(new_err))):
+                error_bkgns.append(new_err[i])    
+        error_bkgns = error_bkgns[::-1] #flip it to appear in the same order as the printed out peak attributes  
+        self.error_bkgns = error_bkgns
+        self.error_array = error_array
+        
 
 
         self.bestFit_mat = best_Fit
@@ -161,6 +231,8 @@ class xes_analysis():
 
         print(self.best_ind.getFit(self.x,self.y))
         self.y_model,self.peak_components,self.bkgn_components = self.best_ind.getFitWithComponents(self.x,self.y)
+        print("Peak Error Values are: ", error_array)
+        print("Background Error Values are: ", error_bkgns)
         '''
         self.y_model_components = self.best_ind.get_peaks()
         self.bkgn_components = self.best_ind.get_backgrounds()
@@ -370,6 +442,38 @@ class xes_analysis():
         #should calculate area and other params
         print("Full analysis not yet functional")
 
+        def area(yVals):
+            """
+            (helper) calculate area as Trapezoidal Riemann sum
+            """
+            area = 0
+            for i in range(len(yVals)-1):
+                """
+                (yVals[i]  -  Background[i])  +  (yVals[i + 1]  +  Background[i + 1])  
+                ---------------------------------------------------------------------- 
+                                (2 * (x[i + 1] - x[i])                         
+
+                """
+                area += (((yVals[i]-self.background[i])+(yVals[i+1]-self.background[i+1]))/2)*(self.x[i+1]-self.x[i])
+            return abs(area)
+
+        self.background = [0] * len(self.x)
+        for i in range(len(self.bkgn_components)):
+                for j in range(len(self.x)):
+                    self.background[j] += self.bkgn_components[i][j]
+
+        self.peak_component_areas = []
+        for peak in self.peak_components:
+            self.peak_component_areas.append(area(peak))
+
+        self.totalArea = area(self.y_model)
+        print("Areas")
+        print("Total Area: ", self.totalArea)
+        print("Individual Peak Area: ", self.peak_component_areas)
+        return self.totalArea, self.peak_component_areas
+    
+    
+
     def plot_data(self,title='Test',fig_gui=None):
         if fig_gui == None:
             plt.rc('xtick', labelsize='12')
@@ -385,38 +489,45 @@ class xes_analysis():
             # ax.plot(self.x_raw,self.y_raw,'ko-',linewidth=1,label='Data')
             plt.plot(self.x,self.y,'b--',linewidth=1,label='Data')
             # ax.plot(self.x_slice,self.y_slice,'r--',linewidth=1.2,label='Slice Data')
-            plt.plot(self.x,self.y_model,'r',linewidth=1,label='Fit')
+            plt.plot(self.x,self.y_model,'k',linewidth=1,label='Fit')
             #plt.plot(self.x_linear,self.y_linear,'--',color='tab:purple')
-            plt.title(title)
-            plt.xlabel('Energy (eV)')
-            plt.ylabel('Counts/s')
             plt.legend()
         else:
-            ax  = fig_gui.add_subplot(111)
-            ax.plot(self.x,self.y,'b.',markersize=5,linewidth=1,label='Data')
-            ax.plot(self.x,self.y_model,'r--',linewidth=1.2,label='Fit')
+            #ax  = fig_gui.add_subplot(111)
+           
+            
+           #added in gridspec to help make residual plot
+            gs = gridspec.GridSpec(2,1, height_ratios=[1,0.25])
+            ax = fig_gui.add_subplot(gs[0])
+            ax2 = fig_gui.add_subplot(gs[1])
+            gs.update(hspace=0) 
+            ax.plot(self.x,self.y,'b.',linewidth=1,label='Data')
+            ax.plot(self.x,self.y_model,'k-',linewidth=1.2,label='Fit')
+            ax2.plot(self.x,self.residual,'k-',linewidth=1.2)
+            #plot peak componenets
             if(len(self.peak_components)>1):
                 for i,peak in enumerate(self.peak_components):
-                    ax.plot(self.x,peak,'--',markersize=2,linewidth = 1,label=('Peak ' + str(i)))
-            if(len(self.bkgn_components)>1):
-                for i,bkgn in enumerate(self.bkgn_components):
-                    ax.plot(self.x,bkgn,'b--',linewidth = 1,label=('Bkgn ' + str(i)))
-
-            bkgns = self.best_ind.get_backgrounds()
-            self.background = [] * len(self.x)
-            for i in range(len(bkgns)):
-                self.background = bkgns[i].getY(self.x,self.y)
-            ax.plot(self.x,self.background,'c-',linewidth =1, label='background')
-            ax.set_xlabel('Energy (eV)')
-            ax.set_ylabel('Counts/s')
-            # ax.title(str('Fit'))
-            # ax.xlabel(str('Energy (eV)'))
-            # ax.ylabel(str('Counts/s'))
-            #ax.invert_xaxis()
-
-            #ax.plot(self.x_linear,self.y_linear,'--',color='tab:purple')
+                    ax.plot(self.x,peak,'-',linewidth = 1,label=('Peak ' + str(i+1)))
+                    
+            self.background = [0] * len(self.x)
+            for i in range(len(self.bkgn_components)):
+                for j in range(len(self.x)):
+                    self.background[j] += self.bkgn_components[i][j]
+            ax.plot(self.x,self.background,'g-',linewidth =1, label='background')
+           
             ax.legend()
+            ax.set_xlabel("Energy (eV)")
+            ax.set_ylabel("Intensity (a.u.)")
+            ax2.set_ylabel("Res.")
+            
+            ax2.set_xlabel("Energy (eV)")
             fig_gui.tight_layout()
    
     def get_params(self):
-        return self.params
+        #return self.params
+       
+        parameters = self.best_ind.get_params()
+        errors = self.error_array
+        errors_bkgns = self.error_bkgns
+        peak_areas = self.peak_component_areas
+        return parameters,errors, errors_bkgns, peak_areas

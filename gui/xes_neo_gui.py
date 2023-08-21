@@ -1195,8 +1195,8 @@ class App():
         arr_col_0 = ['h_f', 'm', 'A', 'Elastic modulus (GPa)', 'Reduced Modulus', 'Stiffness (S)', 'Hardness, H (MPa)',
                      'Max Load (un)', 'Max Depth (nm)']
                      '''
-        arr_col_0 = ['BE','Sigma','Lorentz','Amp','K/A','ChiSqr']
-        self.description_tabs(arr_col_0, self.analysis_tab, sticky='W', row=(1, 2, 3, 4, 5, 6))
+        #arr_col_0 = ['Sigma','Lorentz','Amp','ChiSqr', 'Peak', 'Peak 2', 'Peak 3']
+        #self.description_tabs(arr_col_0, self.analysis_tab, sticky='W', row=(1, 2, 3, 4, 5, 6, 7))
 
         def select_analysis_folder():
             os.chdir(pathlib.Path.cwd().parent)  # change the working directory from gui to nano-indent
@@ -1209,8 +1209,10 @@ class App():
                 self.analysis_dir.set(folder_name)
 
             os.chdir(pathlib.Path.cwd().joinpath('gui'))
+
         def calculate_and_plot():
-            self.background_types = ['Linear']
+            
+            
             params = {
                 'base': pathlib.Path.cwd().parent,
                 'file': self.csv_generate_from,
@@ -1218,73 +1220,211 @@ class App():
                 'peaks' : self.peak_types,
                 'bkgns' : self.background_types,
                 'data obj' : self.data_obj
+                
 
             }
-            params = self.analysis_obj.initial_parameters(self.analysis_dir,params,title='Fit')
+            
+            self.params,self.errors, self.errors_bkgns, self.peak_areas = self.analysis_obj.initial_parameters(self.analysis_dir,params,self.data_KE,title='Fit')
+            
+            #get_params_for_export()
+            self.numPeaks = int(self.number_of_peaks.get()) #This only works if you select number of peaks in fitting paramters tab,not if you just want to look at previous fit 
+            
+            i=int(self.peak_number.get()-1)
+            peakType = self.params[i][-1] #Last element in array is the curve fit type   
+            
+            if i > self.numPeaks:
+                print("Number of peaks limit reached")
+                pass
 
+            
+             
+            #This is the same for Voigt and Double Lorentzian --> Still need to edit it to include asymmetry value for Double Lorentzian    
+            energy_text = str(round(self.params[i][0],2)) + "  " + "+/-" + "  " + str(self.errors[i][0])
+            self.energy_text = StringVar(value=energy_text)
+
+            sigma_text = str(round(self.params[i][1],3)) + "  " + "+/-" + "  " + str(self.errors[i][1])
+            self.sigma_text = StringVar(value=sigma_text)
+
+            lorentzian_text = str(round(self.params[i][2],3)) + "  " + "+/-" + "  " + str(self.errors[i][2])
+            self.lorentzian_text = StringVar(value=lorentzian_text)
+
+            amp_text = str(round(self.params[i][3],2)) + "  " + "+/-" + "  " + str(self.errors[i][3])
+            self.amp_text = StringVar(value=amp_text)
+
+            area_text = str(round(self.peak_areas[i],2))
+            self.area_text = StringVar(value=area_text)
+                
+            self.peak_energy_entries[i] = ttk.Label(self.analysis_tab, textvariable=self.energy_text, font=self.entryFont)
+            self.peak_energy_entries[i].grid(column=1, row=2, sticky=(W, E))
+
+            self.sigma_entries[i] = ttk.Label(self.analysis_tab, textvariable=self.sigma_text, font=self.entryFont)
+            self.sigma_entries[i].grid(column=1, row=3, sticky=(W, E))
+
+            self.lorentzian_entries[i] = ttk.Label(self.analysis_tab, textvariable=self.lorentzian_text, font=self.entryFont)
+            self.lorentzian_entries[i].grid(column=1, row=4, sticky=(W, E))
+
+            self.amp_entries[i] = ttk.Label(self.analysis_tab, textvariable=self.amp_text, font=self.entryFont)
+            self.amp_entries[i].grid(column=1, row=5, sticky=(W, E))
+
+            self.area_entries[i] = ttk.Label(self.analysis_tab, textvariable=self.area_text, font=self.entryFont)
+            self.area_entries[i].grid(column=1, row=6, sticky=(W, E))
+
+            #updateExportDataRows(self)
+
+        # def get_params_for_export():
+        #     self.analysis_export = self.analysis_obj.get_params(self)
+        #     return self.analysis_export
+
+        # Labels
+        self.peak_labels =[0]*10
+        self.sigma_labels = [0]*10
+        self.lorentzian_labels = [0]*10
+        self.amp_labels = [0]*10
+        self.area_labels = [0]*10
+        # Entries
+        self.peak_energy_entries = [0]*10
+        self.sigma_entries = [0]*10
+        self.lorentzian_entries = [0]*10
+        self.amp_entries = [0]*10
+        self.area_entries = [0]*10
+        # Export Data Values
+        self.peak_energy_export = [0]*10
+        self.sigma_export = [0]*10
+        self.lorentzian_export = [0]*10
+        self.amp_export = [0]*10
+        self.area_export = [0]*10
+
+        def updateExportDataRows(args):
+            #self.num = int(self.number_of_peaks.get())
+            self.num = 1
+            #self.Peak_number = abs(self.peak_number)
+            
+            i=int(self.peak_number.get()-1)
+            #voigt_for_peak_type = 'Voigt'
+            #values = self.peak_types in self.peakTypes_entries[i] if you want multiple background types
+            
+
+            #for row in range(1,((4*int(self.peak_number.get()))+1),4): #4 because 4 paramters. add changes here to output more values
+            
+          
+            
+            peakType = self.params[i][-1] #Last element in array is the curve fit type
+            if i > self.numPeaks:
+                print("Number of peaks limit reached")
+                pass
+
+   
+            energy_text = str(round(self.params[i][0],2)) + "  " + "+/-" + "  " + str(self.errors[i][0])
+            self.energy_text = StringVar(value=energy_text)
+
+            sigma_text = str(round(self.params[i][1],3)) + "  " + "+/-" + "  " + str(self.errors[i][1])
+            self.sigma_text = StringVar(value=sigma_text)
+
+            lorentzian_text = str(round(self.params[i][2],3)) + "  " + "+/-" + "  " + str(self.errors[i][2])
+            self.lorentzian_text = StringVar(value=lorentzian_text)
+
+            amp_text = str(round(self.params[i][3],2)) + "  " + "+/-" + "  " + str(self.errors[i][3])
+            self.amp_text = StringVar(value=amp_text)
+
+            area_text = str(round(self.peak_areas[i],2))
+            self.area_text = StringVar(value=area_text)
+               
+            self.peak_energy_entries[i] = ttk.Label(self.analysis_tab, textvariable=self.energy_text, font=self.entryFont)
+            self.peak_energy_entries[i].grid(column=1, row=2, sticky=(W, E))
+
+            self.sigma_entries[i] = ttk.Label(self.analysis_tab, textvariable=self.sigma_text, font=self.entryFont)
+            self.sigma_entries[i].grid(column=1, row=3, sticky=(W, E))
+
+            self.lorentzian_entries[i] = ttk.Label(self.analysis_tab, textvariable=self.lorentzian_text, font=self.entryFont)
+            self.lorentzian_entries[i].grid(column=1, row=4, sticky=(W, E))
+
+            self.amp_entries[i] = ttk.Label(self.analysis_tab, textvariable=self.amp_text, font=self.entryFont)
+            self.amp_entries[i].grid(column=1, row=5, sticky=(W, E))
+
+            self.area_entries[i] = ttk.Label(self.analysis_tab, textvariable=self.area_text, font=self.entryFont)
+            self.area_entries[i].grid(column=1, row=6, sticky=(W, E))
+
+           
+            #i += 1
+
+            #print(peak_labels)
+        '''
+        def get_areas(self,dir,params):  
+            #dir = str(dir.get())
+            self.xps_analysis = xps_analysis2.xps_analysis(dir,params)
+            self.xps_analysis.extract_data(plot_err=False)
+            totalArea, peakAreas = self.xps_analysis.analyze()
+            print(totalArea)
+        '''
         """
         TODO:
         read in output file and get the relevant values to put in the boxes
         """
         self.analysis_obj = Analysis_plot(self.analysis_tab)
 
-        analysis_hf = StringVar(self.analysis_tab, 0.0)
-        analysis_m = StringVar(self.analysis_tab, 0.0)
-        analysis_A = StringVar(self.analysis_tab, 0.0)
-        analysis_elastic = StringVar(self.analysis_tab, 0.0)
-        analysis_RedMod = StringVar(self.analysis_tab, 0.0)
-        analysis_Stiff = StringVar(self.analysis_tab, 0.0)
-        analysis_Hardness = StringVar(self.analysis_tab, 0.0)
-        analysis_MaxL = StringVar(self.analysis_tab, 0.0)
-        analysis_MaxD = StringVar(self.analysis_tab, 0.0)
+        # analysis_chisqr = StringVar(self.analysis_tab, 0.0)
+        # analysis_background = StringVar(self.analysis_tab, 0.0)
 
         # For now put in placeholders
-        analysis_button = ttk.Button(self.analysis_tab, text="Select Folder",
-                                     command=select_analysis_folder)  # Add command to export data
+        # Select Folder Button
+        analysis_button = ttk.Button(self.analysis_tab, text="Select Folder",command=select_analysis_folder)  # Add command to export data
         analysis_button.grid(column=0, row=0, sticky=(W, E), padx=self.padx, pady=self.pady, columnspan=2)
 
-        entry_hf_best = ttk.Label(self.analysis_tab, textvariable=analysis_hf, font=self.entryFont, borderwidth=2,
-                                  relief="groove", background='#a9a9a9')
-        entry_hf_best.grid(column=1, row=1, sticky=(W, E), padx=self.padx)
+        self.peak_number = DoubleVar(self.root, 1) #Changed from 0 to 1 --> works for 1 peak not multiple. Combobox goes away. I think this is being used after folder is selected instead of waiting for user selection 
+        peak_number_options = [1,2,3,4,5,6,7,8,9,10]
+        peak_number_entry = ttk.Combobox(self.analysis_tab, textvariable=self.peak_number, font=self.entryFont,values= peak_number_options)
+        peak_number_entry.grid(column=1, row=1, sticky=(W, E)) #on same row as background checkbox
+        peak_number_entry.bind('<<ComboboxSelected>>', updateExportDataRows)
 
-        entry_m_best = ttk.Label(self.analysis_tab, textvariable=analysis_m, font=self.entryFont, borderwidth=2,
-                                 relief="groove", background='#a9a9a9')
-        entry_m_best.grid(column=1, row=2, sticky=(W, E), padx=self.padx)
 
-        entry_a_best = ttk.Label(self.analysis_tab, textvariable=analysis_A, font=self.entryFont, borderwidth=2,
-                                 relief="groove", background='#a9a9a9')
-        entry_a_best.grid(column=1, row=3, sticky=(W, E), padx=self.padx)
+        
+        peak_labels = "Peak"
+        energy_labels = "Energy" 
+        sigma_labels = "Sigma" 
+        lorentzian_labels = "Lorentz"
+        amp_labels = "Amp" 
+        area_labels = "Area"
+        self.peak_labels = ttk.Label(self.analysis_tab, text=peak_labels, font=self.labelFont)
+        self.peak_labels.grid_configure(column=0, row=1, sticky=W, padx=self.padx, pady=self.pady)
+        self.energy_labels = ttk.Label(self.analysis_tab, text=energy_labels, font=self.labelFont)
+        self.energy_labels.grid_configure(column=0, row=2, sticky=W, padx=self.padx, pady=self.pady)
+        self.sigma_labels = ttk.Label(self.analysis_tab, text=sigma_labels, font=self.labelFont)
+        self.sigma_labels.grid_configure(column=0, row=3, sticky=W, padx=self.padx, pady=self.pady)
+        self.lorentzian_labels = ttk.Label(self.analysis_tab, text=lorentzian_labels, font=self.labelFont)
+        self.lorentzian_labels.grid_configure(column=0, row=4, sticky=W, padx=self.padx, pady=self.pady)
+        self.amp_labels = ttk.Label(self.analysis_tab, text=amp_labels, font=self.labelFont)
+        self.amp_labels.grid_configure(column=0, row=5, sticky=W, padx=self.padx, pady=self.pady)
+        self.area_labels = ttk.Label(self.analysis_tab, text=amp_labels, font=self.labelFont)
+        self.area_labels.grid_configure(column=0, row=6, sticky=W, padx=self.padx, pady=self.pady)
 
-        entry_modulus = ttk.Label(self.analysis_tab, textvariable=analysis_elastic, font=self.entryFont, borderwidth=2,
-                                  relief="groove", background='#a9a9a9')
-        entry_modulus.grid(column=1, row=4, sticky=(W, E), padx=self.padx)
+        
+        
 
-        entry_red_modulus = ttk.Label(self.analysis_tab, textvariable=analysis_RedMod, font=self.entryFont,
-                                      borderwidth=2,
-                                      relief="groove", background='#a9a9a9')
-        entry_red_modulus.grid(column=1, row=5, sticky=(W, E), padx=self.padx)
+        # Entries___________________________________________________________________________________________
+        # entry_chisqr_best = ttk.Label(self.analysis_tab, textvariable=analysis_chisqr, font=self.entryFont, borderwidth=2,
+        #                           relief="groove", background='#a9a9a9')
+        # entry_chisqr_best.grid(column=1, row=4, sticky=(W, E), padx=self.padx)
 
-        entry_stiff = ttk.Label(self.analysis_tab, textvariable=analysis_Stiff, font=self.entryFont, borderwidth=2,
-                                relief="groove", background='#a9a9a9')
-        entry_stiff.grid(column=1, row=6, sticky=(W, E), padx=self.padx)
+        # entry_background = ttk.Label(self.analysis_tab, textvariable=analysis_background, font=self.entryFont,borderwidth=2,
+        #                               relief="groove", background='#a9a9a9')
+        # entry_background.grid(column=1, row=5, sticky=(W, E), padx=self.padx)
 
-        entry_hard = ttk.Label(self.analysis_tab, textvariable=analysis_Hardness, font=self.entryFont, borderwidth=2,
-                               relief="groove", background='#a9a9a9')
-        entry_hard.grid(column=1, row=7, sticky=(W, E), padx=self.padx)
+        # Number of Peak to Find Row
+        self.numPeaks = int(self.number_of_peaks.get())
 
-        entry_max_load = ttk.Label(self.analysis_tab, textvariable=analysis_MaxL, font=self.entryFont, borderwidth=2,
-                                   relief="groove", background='#a9a9a9')
-        entry_max_load.grid(column=1, row=8, sticky=(W, E), padx=self.padx)
+        # Chisqr Entry
+        # entry_chisqr_best = ttk.Label(self.analysis_tab, textvariable=analysis_chisqr, font=self.entryFont, borderwidth=2,
+        #                           relief="groove", background='#a9a9a9')
+        # entry_chisqr_best.grid(column=1, row=4, sticky=(W, E), padx=self.padx)
 
-        entry_max_depth = ttk.Label(self.analysis_tab, textvariable=analysis_MaxD, font=self.entryFont, borderwidth=2,
-                                    relief="groove", background='#a9a9a9')
-        entry_max_depth.grid(column=1, row=9, sticky=(W, E), padx=self.padx)
-        button_plot = ttk.Button(self.analysis_tab,
-                                 text="Plot Best Fit",
-                                 command=calculate_and_plot)  # Add command to plot data using postprocessing
-        button_plot.grid(column=0, row=10, sticky=(W, E), padx=self.padx, pady=self.pady, columnspan=2)
+        # Plot Best Fit Button
+        button_plot = ttk.Button(self.analysis_tab,text="Plot Best Fit",command=calculate_and_plot)  # Add command to plot data using postprocessing
+        button_plot.grid(column=0, row=((4*self.numPeaks)+5), sticky=(W, E), padx=self.padx, pady=self.pady, columnspan=2)
+
+        # Export Values Button
+
         button_export = ttk.Button(self.analysis_tab, text="Export Values")  # Add command to export data
-        button_export.grid(column=0, row=11, sticky=(W, E), padx=self.padx, pady=self.pady, columnspan=2)
+        button_export.grid(column=0, row=((4*self.numPeaks)+6), sticky=(W, E), padx=self.padx, pady=self.pady, columnspan=2)
 
         self.analysis_tab.columnconfigure(3, weight=1)
         self.analysis_tab.rowconfigure(0, weight=1)
