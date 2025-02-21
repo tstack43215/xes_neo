@@ -1,8 +1,9 @@
-# Nano_Neo
+# XES Neo
 #### Versions: 0.0.4
-#### Last update: Sep 14, 2021
+#### Last update: Feb 21, 2025
 
-This program utilize Genetic algorithm in fitting of Nano_Indent
+This program utilize Genetic algorithm in fitting of XES Data. This software is an early beta version of XES fitting software.
+It was put together as part of a Summer REU program with the assistance of Illinois Tech and Boise State University.
 
 ## Pre-requisites
 Usage of this software is highly recommend to use `anaconda` or `pip` package managers.
